@@ -1002,13 +1002,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
     <div class="alert alert-err" id="log-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="log-err-msg"></span></div>
 
-    <!-- Photo -->
+    <!-- Photo required - gallery or camera -->
     <div class="fg" style="margin-bottom:.85rem">
       <label>Photo <span style="color:var(--orange)">*Required</span></label>
       <label class="upload-z" id="uploadZ" style="margin-top:4px">
         <input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        <span id="upload-label-text">Add Photo — Tap or Click</span>
+        <span id="upload-label-text">Add Photo — gallery or camera</span>
       </label>
       <div id="f-photo-preview" style="display:none;margin-top:6px"><img id="f-preview-img" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border2)"></div>
     </div>
@@ -1024,6 +1024,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
     <div class="f-grid">
       <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="ff"><label>Catch Date</label><input type="date" id="f-date" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
       <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
       <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
       <div class="ff"><label>Length (cm) <span id="len-required" style="color:var(--orange);display:none">*</span></label><input type="number" id="f-len" placeholder="0" min="0"></div>
@@ -1362,7 +1363,7 @@ function setLogTab(tab){
     else photoInput.removeAttribute('capture');
   }
   const uploadLabel=document.getElementById('upload-label-text');
-  if(uploadLabel)uploadLabel.textContent=isTournTab?'📷 Take Photo — camera only':'Add Photo — Tap or Click';
+  if(uploadLabel)uploadLabel.textContent=isTournTab?'📷 Take Photo — camera only':'📷 Add Photo — gallery or camera';
 }
 
 function openLogModal(){
@@ -1373,6 +1374,7 @@ function openLogModal(){
   setLogTab('catch');
   // Reset form
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes','f-lat','f-lng'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fDate=document.getElementById('f-date');if(fDate)fDate.value=new Date().toISOString().slice(0,10);
   const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
   catchPhotoBase64=null;
   document.getElementById('f-photo').value='';
@@ -1422,7 +1424,7 @@ async function submitCatch(){
   if(!currentUser){showPage('auth');return;}
   hideAlert('log-err');
 
-  // Photo is required
+  // Photo required for all catches
   if(!catchPhotoBase64)return showAlert('log-err','A photo is required to log a catch.');
 
   const spSel=document.getElementById('f-sp').value;
@@ -1484,6 +1486,8 @@ async function submitCatch(){
     }catch(e){}
   }
 
+  const catchDate=document.getElementById('f-date').value||null;
+
   const{data,error}=await sb.from('catches').insert({
     user_id:currentUser.id,username:uname,species:sp,
     location:loc||null,weight_kg:wt,length_cm:len,
@@ -1491,8 +1495,9 @@ async function submitCatch(){
     tournament_entry:isTour,verified:!isTour&&!photoFlag,
     photo_data:catchPhotoBase64||null,
     catch_lat:catchLat,catch_lng:catchLng,
-    photo_status:photoStatus,
-    moderation_reason:photoReason
+    photo_status:catchPhotoBase64?photoStatus:'none',
+    moderation_reason:photoReason,
+    catch_date:catchDate
   }).select().single();
 
   setLoading('post-btn',false,'Post Catch');
