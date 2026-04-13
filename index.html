@@ -728,6 +728,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 <!-- PROFILE PAGE -->
 <div id="page-profile" class="page">
   <div class="profile-page">
+    <div style="background:var(--bg2);border-bottom:1px solid var(--border);padding:.65rem 1.75rem;display:flex;align-items:center;gap:.75rem">
+      <button class="btn-ghost btn-sm" onclick="history.back()" style="display:flex;align-items:center;gap:5px;font-size:.78rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Back</button>
+      <div style="font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3)" id="p-breadcrumb">Profile</div>
+    </div>
     <div id="profile-loading" style="text-align:center;padding:5rem 1rem"><div class="spin-lg"></div></div>
     <div id="profile-not-found" class="profile-not-found" style="display:none">
       <h2>Angler not found</h2>
@@ -877,15 +881,11 @@ var entryPhotoBase64=null,catchPhotoBase64=null;
 (async function(){
   const{data:{session}}=await sb.auth.getSession();
   if(session)await doLogin(session.user);
-  else{
-    // Check if visiting a profile URL directly
-    if(window.location.hash.startsWith('#/profile/')){
-      showPage('landing');
-      const u=window.location.hash.replace('#/profile/','');
-      if(u)loadProfile(u);
-    }else{
-      showPage('landing');
-    }
+  else showPage('landing');
+  // Check hash after auth resolves
+  if(window.location.hash.startsWith('#/profile/')){
+    const u=window.location.hash.replace('#/profile/','');
+    if(u)loadProfile(u);
   }
 })();
 
@@ -1573,8 +1573,11 @@ function attachLikeHandlers(){
 var profileUsername=null,profileData=null,profileCatches=[],isFollowing=false;
 
 async function loadProfile(username){
+  if(!username)return;
   profileUsername=username;
+  history.pushState(null,'','#/profile/'+username);
   showPage('profile');
+  window.scrollTo(0,0);
   document.getElementById('profile-loading').style.display='block';
   document.getElementById('profile-content').style.display='none';
   document.getElementById('profile-not-found').style.display='none';
