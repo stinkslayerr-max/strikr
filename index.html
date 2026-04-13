@@ -1969,13 +1969,19 @@ async function endTournament(tid,btn){
 }
 
 async function deleteTournament(tid,btn,name){
-  if(!confirm(`Delete "${name}" permanently? This cannot be undone and all entries will be removed.`))return;
+  // Replace button with inline confirm
+  const orig=btn.innerHTML;
+  btn.innerHTML='Sure? <span onclick="doDeleteTournament(\''+tid+'\',this)" style="color:#f4a09a;cursor:pointer;text-decoration:underline">Yes, delete</span> · <span onclick="this.closest(\'button\').innerHTML=\'Delete\';this.closest(\'button\').disabled=false" style="cursor:pointer;text-decoration:underline">Cancel</span>';
+  btn.disabled=false;
+}
+
+async function doDeleteTournament(tid,el){
+  const btn=el.closest('button');
   btn.disabled=true;btn.textContent='Deleting...';
   await sb.from('tournament_entries').delete().eq('tournament_id',tid);
   const{error}=await sb.from('tournaments').delete().eq('id',tid);
   if(error){btn.disabled=false;btn.textContent='Delete';alert('Error: '+error.message);return;}
   loadAdminTourns();loadSidebar();
-  // Recalculate pool after deletion
   await redistributePool();
 }
 
