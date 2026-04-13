@@ -401,6 +401,28 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
 @media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
 
+/* BADGES */
+.badge-card{background:var(--bg2);padding:1.35rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .2s;position:relative}
+.badge-card:hover{background:var(--bg3)}
+.badge-card.locked{opacity:.4;filter:grayscale(1)}
+.badge-icon{font-size:2.2rem;margin-bottom:.6rem;line-height:1}
+.badge-name{font-family:var(--font-d);font-size:.95rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.badge-desc{font-size:.75rem;color:var(--text2);line-height:1.55;font-weight:300}
+.badge-earned{position:absolute;top:.6rem;right:.6rem;background:var(--green);width:8px;height:8px;border-radius:50%}
+.badge-progress{width:100%;height:3px;background:var(--bg4);border-radius:2px;margin-top:.65rem;overflow:hidden}
+.badge-progress-f{height:100%;background:var(--orange);border-radius:2px;transition:width .4s}
+.badge-pct{font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-top:4px}
+
+/* BADGE NOTIFICATION */
+.badge-notif{position:fixed;bottom:1.5rem;right:1.5rem;z-index:500;background:var(--bg2);border:1px solid var(--orange-b);border-left:3px solid var(--orange);padding:1rem 1.25rem;border-radius:var(--r);max-width:280px;animation:slideIn .4s ease;box-shadow:0 4px 24px rgba(0,0,0,.5)}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+.bn-title{font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--orange);margin-bottom:.25rem}
+.bn-badge{display:flex;align-items:center;gap:.65rem}
+.bn-icon{font-size:1.8rem;flex-shrink:0}
+.bn-name{font-family:var(--font-d);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text)}
+.bn-desc{font-size:.75rem;color:var(--text2);font-weight:300}
+
 /* MAP */
 .map-panel{height:calc(100vh - 56px);display:flex;flex-direction:column;margin:-1.5rem}
 .map-toolbar{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
@@ -640,6 +662,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <li><a class="active" onclick="showPanel('feed');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Feed</a></li>
         <li><a onclick="showPanel('mycatches');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>My Catches</a></li>
         <li><a onclick="showPanel('map');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Spot Map</a></li>
+        <li><a onclick="showPanel('achievements');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Achievements <span id="badge-new-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
         <div class="s-sec">Compete</div>
         <li><a onclick="if(isUserPro){showPanel('tournaments');setNav(this);}else{showPanel('tournaments');setNav(this);}" ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Tournaments</a></li>
         <div class="s-sec" id="admin-sec" style="display:none">Admin</div>
@@ -779,6 +802,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
             <div id="strikr-map"></div>
           </div>
         </div>
+      </div>
+
+      <!-- ACHIEVEMENTS -->
+      <div id="panel-achievements" class="panel">
+        <div class="panel-hdr">
+          <h2>Achievements</h2>
+          <span id="badge-earned-count" style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)"></span>
+        </div>
+        <p style="font-size:.82rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.65;font-weight:300">Badges are awarded automatically when you hit a milestone. Keep fishing to unlock them all.</p>
+        <div id="achievements-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1px;background:var(--border)"><div class="spin-lg"></div></div>
       </div>
     </main>
 
@@ -964,6 +997,7 @@ async function doLogin(user){
   currentUser=user;
   const uname=user.user_metadata?.username||user.email.split('@')[0];
   updateNav(uname);showPage('app');loadFeed('all');loadSidebar();loadModCount();checkProStatus();
+  setTimeout(()=>checkAndAwardBadges(),2000);
   // Show admin nav only for admin account
   const isAdmin=user.email==='stinkslayerr@gmail.com';
   document.getElementById('admin-sec').style.display=isAdmin?'':'none';
@@ -1152,7 +1186,7 @@ async function submitCatch(){
   z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Add Photo — Tap or Drag';
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
-  attachLikeHandlers();loadSidebar();
+  attachLikeHandlers();loadSidebar();checkAndAwardBadges();
 }
 
 // ===== TOURNAMENT ENTRY =====
@@ -1675,6 +1709,12 @@ async function loadProfile(username){
   if(!currentUser||currentUser.id===profile.id){followBtn.style.display='none';}
   else{followBtn.className='follow-btn '+(isFollowing?'following':'not-following');followBtn.textContent=isFollowing?'Following':'Follow';}
   renderCatchGrid();renderPBWall();renderTournamentHistory(entries||[]);
+  // Load badges for this profile
+  loadProfileBadges(profile.id).then(badgeHTML=>{
+    let badgeEl=document.getElementById('p-badge-row');
+    if(!badgeEl){badgeEl=document.createElement('div');badgeEl.id='p-badge-row';badgeEl.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-top:.65rem';document.querySelector('.profile-counts').after(badgeEl);}
+    badgeEl.innerHTML=badgeHTML;
+  });
   document.title=username+' · Strikr';
   document.getElementById('profile-loading').style.display='none';
   document.getElementById('profile-content').style.display='block';
@@ -1737,6 +1777,88 @@ function shareProfile(){
   const url='https://strikr.vercel.app#/profile/'+profileUsername;
   if(navigator.share){navigator.share({title:profileUsername+' on Strikr',url});}
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+// ===== BADGE SYSTEM =====
+const BADGES=[
+  {id:'first_cast',icon:'🎣',name:'First Cast',desc:'Log your first catch',check:async(u,catches)=>catches.length>=1,progress:(u,catches)=>({val:Math.min(catches.length,1),max:1})},
+  {id:'on_the_map',icon:'📍',name:'On the Map',desc:'Log a catch with GPS location',check:async(u,catches)=>catches.some(c=>c.catch_lat),progress:(u,catches)=>({val:catches.filter(c=>c.catch_lat).length>0?1:0,max:1})},
+  {id:'ten_club',icon:'🔟',name:'10 Club',desc:'Log 10 catches',check:async(u,catches)=>catches.length>=10,progress:(u,catches)=>({val:Math.min(catches.length,10),max:10})},
+  {id:'century',icon:'💯',name:'Century',desc:'Log 100 catches',check:async(u,catches)=>catches.length>=100,progress:(u,catches)=>({val:Math.min(catches.length,100),max:100})},
+  {id:'species_hunter',icon:'🐟',name:'Species Hunter',desc:'Catch 5 different species',check:async(u,catches)=>[...new Set(catches.map(c=>c.species).filter(Boolean))].length>=5,progress:(u,catches)=>({val:Math.min([...new Set(catches.map(c=>c.species).filter(Boolean))].length,5),max:5})},
+  {id:'diversity_king',icon:'🦁',name:'Diversity King',desc:'Catch 10 different species',check:async(u,catches)=>[...new Set(catches.map(c=>c.species).filter(Boolean))].length>=10,progress:(u,catches)=>({val:Math.min([...new Set(catches.map(c=>c.species).filter(Boolean))].length,10),max:10})},
+  {id:'double_digits',icon:'⚖️',name:'Double Digits',desc:'Log a catch over 10kg',check:async(u,catches)=>catches.some(c=>c.weight_kg>=10),progress:(u,catches)=>({val:catches.some(c=>c.weight_kg>=10)?1:0,max:1})},
+  {id:'tournament_angler',icon:'🏆',name:'Tournament Angler',desc:'Enter your first tournament',check:async(u)=>{const{count}=await sb.from('tournament_entries').select('*',{count:'exact',head:true}).eq('user_id',u.id);return count>0;},progress:async(u)=>{const{count}=await sb.from('tournament_entries').select('*',{count:'exact',head:true}).eq('user_id',u.id);return{val:Math.min(count||0,1),max:1};}},
+  {id:'social',icon:'👥',name:'Social',desc:'Get 10 followers',check:async(u)=>{const{count}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',u.id);return count>=10;},progress:async(u)=>{const{count}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',u.id);return{val:Math.min(count||0,10),max:10};}},
+  {id:'pro',icon:'💎',name:'Pro Angler',desc:'Upgrade to Pro',check:async(u)=>{const{data}=await sb.from('profiles').select('is_pro').eq('id',u.id).single();return data?.is_pro;},progress:async(u)=>{const{data}=await sb.from('profiles').select('is_pro').eq('id',u.id).single();return{val:data?.is_pro?1:0,max:1};}},
+  {id:'early_adopter',icon:'⭐',name:'Early Adopter',desc:'One of the first 100 anglers on Strikr',check:async(u,catches,allUsers)=>allUsers<=100,progress:async()=>({val:1,max:1})},
+  {id:'globetrotter',icon:'🌏',name:'Globetrotter',desc:'Log catches in 3 different locations',check:async(u,catches)=>[...new Set(catches.map(c=>c.location).filter(Boolean))].length>=3,progress:(u,catches)=>({val:Math.min([...new Set(catches.map(c=>c.location).filter(Boolean))].length,3),max:3})},
+];
+
+async function checkAndAwardBadges(){
+  if(!currentUser)return;
+  const{data:catches}=await sb.from('catches').select('*').eq('user_id',currentUser.id);
+  const{count:userCount}=await sb.from('profiles').select('*',{count:'exact',head:true});
+  const{data:existing}=await sb.from('user_badges').select('badge_id').eq('user_id',currentUser.id);
+  const earned=new Set(existing?.map(b=>b.badge_id)||[]);
+  const newBadges=[];
+  for(const badge of BADGES){
+    if(earned.has(badge.id))continue;
+    try{
+      const qualifies=await badge.check(currentUser,catches||[],userCount||0);
+      if(qualifies){
+        await sb.from('user_badges').insert({user_id:currentUser.id,badge_id:badge.id});
+        newBadges.push(badge);
+      }
+    }catch(e){console.log('Badge check error:',badge.id,e);}
+  }
+  // Show notifications for new badges
+  for(let i=0;i<newBadges.length;i++){
+    setTimeout(()=>showBadgeNotif(newBadges[i]),i*3500);
+  }
+}
+
+function showBadgeNotif(badge){
+  const el=document.createElement('div');
+  el.className='badge-notif';
+  el.innerHTML=`<div class="bn-title">🎉 Badge Unlocked!</div><div class="bn-badge"><div class="bn-icon">${badge.icon}</div><div><div class="bn-name">${badge.name}</div><div class="bn-desc">${badge.desc}</div></div></div>`;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.animation='slideOut .4s ease forwards';setTimeout(()=>el.remove(),400);},3000);
+}
+
+async function loadAchievements(){
+  const grid=document.getElementById('achievements-grid');
+  grid.innerHTML='<div class="spin-lg"></div>';
+  if(!currentUser)return;
+  const{data:catches}=await sb.from('catches').select('*').eq('user_id',currentUser.id);
+  const{count:userCount}=await sb.from('profiles').select('*',{count:'exact',head:true});
+  const{data:existing}=await sb.from('user_badges').select('badge_id,earned_at').eq('user_id',currentUser.id);
+  const earned=new Map(existing?.map(b=>[b.badge_id,b.earned_at])||[]);
+  document.getElementById('badge-earned-count').textContent=earned.size+' / '+BADGES.length+' earned';
+  const cards=await Promise.all(BADGES.map(async badge=>{
+    const isEarned=earned.has(badge.id);
+    let prog={val:0,max:1};
+    try{prog=await(typeof badge.progress==='function'?badge.progress(currentUser,catches||[],userCount||0):badge.progress(currentUser,catches||[],userCount||0));}catch(e){}
+    if(typeof prog.then==='function')prog=await prog;
+    const pct=Math.round((prog.val/prog.max)*100);
+    return `<div class="badge-card${isEarned?'':' locked'}">
+      ${isEarned?'<div class="badge-earned"></div>':''}
+      <div class="badge-icon">${badge.icon}</div>
+      <div class="badge-name">${badge.name}</div>
+      <div class="badge-desc">${badge.desc}</div>
+      ${!isEarned&&prog.max>1?`<div class="badge-progress"><div class="badge-progress-f" style="width:${pct}%"></div></div><div class="badge-pct">${prog.val} / ${prog.max}</div>`:''}
+      ${isEarned?`<div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-top:.5rem">Earned</div>`:''}
+    </div>`;
+  }));
+  grid.innerHTML=cards.join('');
+}
+
+// Show badges on profile page
+async function loadProfileBadges(userId){
+  const{data:badges}=await sb.from('user_badges').select('badge_id').eq('user_id',userId);
+  if(!badges||badges.length===0)return'';
+  const earned=new Set(badges.map(b=>b.badge_id));
+  return BADGES.filter(b=>earned.has(b.id)).map(b=>`<span title="${b.name}: ${b.desc}" style="font-size:1.35rem;cursor:default">${b.icon}</span>`).join('');
 }
 
 // ===== GPS CATCH CAPTURE =====
@@ -1854,7 +1976,7 @@ function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/prof
 window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
-function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();}
+function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();}
 function goHome(){showPage(currentUser?'app':'landing');}
 function updateNav(u){if(u){document.getElementById('nav-auth').style.display='none';document.getElementById('nav-user').style.display='flex';document.getElementById('nav-av').textContent=u.substring(0,2).toUpperCase();document.getElementById('nav-uname').textContent=u;}else{document.getElementById('nav-auth').style.display='flex';document.getElementById('nav-user').style.display='none';}}
 function setNav(el){document.querySelectorAll('.s-nav a').forEach(a=>a.classList.remove('active'));if(el)el.classList.add('active');}
