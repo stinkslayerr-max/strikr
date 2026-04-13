@@ -1203,6 +1203,9 @@ async function loadLandingLeaderboard(){
 }
 
 async function doLogin(user){
+  // Check user exists in profiles — catch stale/deleted sessions
+  const{data:profile}=await sb.from('profiles').select('id').eq('id',user.id).single();
+  if(!profile){await sb.auth.signOut();showPage('landing');return;}
   currentUser=user;
   const uname=user.user_metadata?.username||user.email.split('@')[0];
   updateNav(uname);showPage('app');loadFeed('all');loadSidebar();loadModCount();checkProStatus();
