@@ -1963,11 +1963,13 @@ async function loadAdminTourns(){
         </div>
         <div style="display:flex;flex-direction:column;gap:.45rem;flex-shrink:0">
           ${isActive?`<button class="btn btn-sm" onclick="editTournament('${t.id}','${t.name.replace(/'/g,"\\'")}',${t.prize_pool},'${t.ends_at}')">Edit</button>`:''}
+          <button class="btn-outline btn-sm" onclick="toggleEntries('${t.id}',this)">Entries (${entryCount})</button>
           ${isActive?`<button class="btn btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End Tournament</button>`:''}
           <button class="btn btn-sm btn-danger" onclick="deleteTournament('${t.id}',this,'${t.name}')">Delete</button>
           ${isActive?`<button class="btn-outline btn-sm" onclick="recalcPool(this)" style="font-size:.7rem">Recalc Pool</button>`:''}
         </div>
       </div>
+      <div id="entries-${t.id}" style="display:none;border-top:1px solid var(--border);margin-top:.85rem;padding-top:.85rem"></div>
     </div>`;
   }).join('');
 }
@@ -1993,6 +1995,37 @@ async function createTournament(){
   ['ct-name','ct-desc','ct-prize','ct-start','ct-end'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ct-form').style.display='none';
   loadAdminTourns();loadSidebar();
+}
+
+async function toggleEntries(tid,btn){
+  const el=document.getElementById('entries-'+tid);
+  if(el.style.display==='block'){el.style.display='none';btn.textContent=btn.textContent.replace('▲','▼');return;}
+  btn.textContent='Loading...';
+  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tid).order('length_cm',{ascending:false});
+  if(!entries||entries.length===0){el.innerHTML='<p style="font-size:.8rem;color:var(--text3);font-weight:300">No entries yet.</p>';}
+  else{
+    el.innerHTML=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">Entries</div>`+
+    entries.map((e,i)=>`<div style="display:flex;align-items:center;gap:.75rem;padding:.45rem 0;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--font-d);font-size:.95rem;font-weight:800;color:var(--text3);width:20px">${i+1}</div>
+      ${e.photo_data?`<img src="data:image/jpeg;base64,${e.photo_data}" style="width:36px;height:36px;object-fit:cover;border-radius:var(--r);flex-shrink:0">`:'<div style="width:36px;height:36px;background:var(--bg3);border-radius:var(--r);flex-shrink:0"></div>'}
+      <div style="flex:1">
+        <div style="font-size:.82rem;color:var(--text);font-weight:500">@${e.username}</div>
+        <div style="font-size:.72rem;color:var(--text3);font-weight:300">${e.species||''}${e.length_cm?' · '+e.length_cm+'cm':''}${e.weight_kg?' · '+e.weight_kg+'kg':''} · ${e.verified?'✓ Verified':'Pending'}</div>
+      </div>
+      <button class="btn-outline btn-sm btn-danger" onclick="deleteEntry('${e.id}','${tid}',this)" style="font-size:.7rem;flex-shrink:0">Remove</button>
+    </div>`).join('');
+  }
+  el.style.display='block';
+  btn.textContent='Entries ('+entries.length+') ▲';
+}
+
+async function deleteEntry(eid,tid,btn){
+  btn.disabled=true;btn.textContent='...';
+  await sb.from('tournament_entries').delete().eq('id',eid);
+  btn.closest('div[style*="border-bottom"]').remove();
+  // Update entry count in button
+  const toggle=document.querySelector(`button[onclick*="toggleEntries('${tid}'"]`);
+  if(toggle){const m=toggle.textContent.match(/\d+/);if(m)toggle.textContent=`Entries (${Math.max(0,parseInt(m[0])-1)}) ▲`;}
 }
 
 function editTournament(tid,name,prize,endsAt){
