@@ -1221,8 +1221,8 @@ async function handleSignup(){
   const pw=document.getElementById('su-pw').value;
   const conf=document.getElementById('su-conf').value;
   const terms=document.getElementById('su-terms').checked;
-  const gender=document.getElementById('su-gender').value||null;
-  const insta=document.getElementById('su-insta').value.trim().replace('@','')||null;
+  const gender=document.getElementById('su-gender')?.value||null;
+  const insta=null;
   if(!username||!/^[a-zA-Z0-9_]{3,20}$/.test(username))return showAlert('su-alert','Valid username required (3–20 chars, letters/numbers/underscore).');
   if(!email||!email.includes('@'))return showAlert('su-alert','Valid email required.');
   if(pw.length<8)return showAlert('su-alert','Password must be at least 8 characters.');
