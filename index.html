@@ -1203,16 +1203,11 @@ async function loadLandingLeaderboard(){
 }
 
 async function doLogin(user){
-  // Check user exists in profiles — catch stale/deleted sessions
-  const{data:profile}=await sb.from('profiles').select('id').eq('id',user.id).single();
-  if(!profile){await sb.auth.signOut();showPage('landing');return;}
   currentUser=user;
   const uname=user.user_metadata?.username||user.email.split('@')[0];
   updateNav(uname);showPage('app');loadFeed('all');
-  // Defer non-critical calls so feed loads first
   setTimeout(()=>{loadSidebar();loadModCount();checkProStatus();},500);
   setTimeout(()=>checkAndAwardBadges(),3000);
-  // Show admin nav only for admin account
   const isAdmin=user.email==='stinkslayerr@gmail.com';
   document.getElementById('admin-sec').style.display=isAdmin?'':'none';
   document.getElementById('admin-nav-item').style.display=isAdmin?'':'none';
