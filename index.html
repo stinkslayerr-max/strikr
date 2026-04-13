@@ -66,6 +66,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
 /* PAGES */
 .page{display:none}.page.active{display:block}
+#page-profile.active{display:block;position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;overflow-y:auto;background:var(--bg)}
 
 /* ===== LANDING ===== */
 .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:7rem 1.5rem 4rem;position:relative;overflow:hidden}
@@ -409,7 +410,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 @media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar{display:none}.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
 @media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
-@media(max-width:900px){#page-profile{padding-bottom:70px}}
+@media(max-width:900px){#page-profile{padding-bottom:70px;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;z-index:200;background:var(--bg)}}
 
 /* INSTALL BANNER */
 .install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
