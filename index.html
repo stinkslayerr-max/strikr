@@ -477,7 +477,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <div class="p-amt">$9<span>.99/mo</span></div>
         <div class="p-desc">Enter tournaments, unlock analytics, get the full Strikr experience.</div>
         <ul class="p-list"><li>Everything in Free</li><li class="pro">Tournament entry — weekly + monthly</li><li class="pro">Multiple entries — best catch counts</li><li class="pro">Advanced catch analytics</li><li class="pro">Private spot maps + Pro badge</li><li class="pro">80% of your sub → prize pool</li></ul>
-        <button class="btn btn-full" onclick="showPage('auth');switchTab('signup')">Go Pro</button>
+        <button class="btn btn-full" onclick="goPro.call(this)">Go Pro — $5/mo</button>
       </div>
     </div>
   </div>
@@ -557,7 +557,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <li><a onclick="showPanel('mycatches');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>My Catches</a></li>
         <li><a onclick="setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Spot Map</a></li>
         <div class="s-sec">Compete</div>
-        <li><a onclick="showPanel('tournaments');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Tournaments</a></li>
+        <li><a onclick="if(isUserPro){showPanel('tournaments');setNav(this);}else{showPanel('tournaments');setNav(this);}" ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Tournaments</a></li>
         <div class="s-sec">Admin</div>
         <li><a onclick="showPanel('admin');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Manage</a></li>
         <li><a onclick="showPanel('modqueue');setNav(this)" id="mod-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Mod Review <span id="mod-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
@@ -565,7 +565,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <div class="pro-nudge">
         <h5>Go Pro</h5>
         <p>Enter tournaments & unlock analytics</p>
-        <button class="btn btn-sm btn-full" onclick="showPanel('tournaments');setNav(document.querySelector('.s-nav a:nth-child(5)'))">Upgrade — $9.99/mo</button>
+        <button class="btn btn-sm btn-full" onclick="goPro.call(this)">Upgrade — $5/mo</button>
       </div>
     </aside>
 
@@ -613,7 +613,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
       <!-- TOURNAMENTS -->
       <div id="panel-tournaments" class="panel">
-        <div class="panel-hdr"><h2>Tournaments</h2><span style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--orange-dim);color:var(--orange);padding:3px 9px;border:1px solid var(--orange-b);border-radius:3px">Pro required</span></div>
+        <div class="panel-hdr"><h2>Tournaments</h2><span id="pro-badge" style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:var(--orange-dim);color:var(--orange);padding:3px 9px;border:1px solid var(--orange-b);border-radius:3px;display:none">Pro required</span></div>
+        <div id="pro-gate" style="display:none;background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--orange);padding:2.5rem 2rem;text-align:center;border-radius:var(--r)">
+          <div style="font-family:var(--font-d);font-size:2.5rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.65rem">Go Pro</div>
+          <p style="font-size:.88rem;color:var(--text2);max-width:360px;margin:0 auto 1.5rem;line-height:1.7;font-weight:300">Unlock weekly and monthly tournaments. 80% of every subscription goes straight to prize pools — funded by anglers, for anglers.</p>
+          <div style="font-family:var(--font-d);font-size:3rem;font-weight:800;color:var(--orange);line-height:1;margin-bottom:.25rem">$5<span style="font-size:1.2rem;color:var(--text3)">/mo</span></div>
+          <div style="font-size:.72rem;color:var(--text3);margin-bottom:1.75rem;font-weight:300">Cancel anytime</div>
+          <button class="btn" onclick="goPro.call(this)" style="padding:.65rem 2.5rem;font-size:.9rem">Upgrade to Pro</button>
+        </div>
         <div id="tournContainer"><div class="spin-lg"></div></div>
       </div>
 
@@ -754,7 +761,7 @@ sb.auth.onAuthStateChange(async(event,session)=>{
 async function doLogin(user){
   currentUser=user;
   const uname=user.user_metadata?.username||user.email.split('@')[0];
-  updateNav(uname);showPage('app');loadFeed('all');loadSidebar();loadModCount();
+  updateNav(uname);showPage('app');loadFeed('all');loadSidebar();loadModCount();checkProStatus();
 }
 
 // ===== AUTH =====
@@ -790,6 +797,71 @@ async function handleLogin(){
 }
 
 async function handleLogout(){await sb.auth.signOut();}
+
+async function goPro(){
+  if(!currentUser){showPage('auth');switchTab('signup');return;}
+  const btn=event.currentTarget;
+  const orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Loading...';
+  try{
+    const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
+    const res=await fetch('https://mkcbkxihvbugypydsqnz.supabase.co/functions/v1/create-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({user_id:currentUser.id,email:currentUser.email,username:uname})
+    });
+    const data=await res.json();
+    if(data.url){window.location.href=data.url;}
+    else{alert('Could not start checkout: '+(data.error||'Unknown error'));}
+  }catch(e){alert('Checkout error: '+e.message);}
+  btn.disabled=false;btn.innerHTML=orig;
+}
+
+var isUserPro=false;
+
+async function checkProStatus(){
+  if(!currentUser)return;
+  const{data}=await sb.from('profiles').select('is_pro').eq('id',currentUser.id).single();
+  isUserPro=data?.is_pro||false;
+  if(isUserPro){
+    document.querySelectorAll('.pro-nudge').forEach(el=>el.style.display='none');
+    document.getElementById('pro-gate').style.display='none';
+    document.getElementById('pro-badge').style.display='none';
+    document.getElementById('tournContainer').style.display='block';
+    const pill=document.getElementById('nav-uname');
+    if(pill&&!pill.querySelector('.pro-pill')){
+      const badge=document.createElement('span');
+      badge.className='pro-pill';
+      badge.style.cssText='background:var(--orange);color:#fff;font-size:.55rem;padding:1px 6px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;margin-left:4px';
+      badge.textContent='PRO';
+      pill.appendChild(badge);
+    }
+  }else{
+    document.getElementById('pro-gate').style.display='block';
+    document.getElementById('pro-badge').style.display='inline';
+    document.getElementById('tournContainer').style.display='none';
+  }
+}
+
+// Check URL for Stripe redirect
+(function(){
+  const url=new URL(window.location.href);
+  if(url.searchParams.get('checkout')==='success'){
+    // Show success message after redirect back from Stripe
+    setTimeout(()=>{
+      if(currentUser){
+        const msg=document.createElement('div');
+        msg.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#1e1e1c;border:1px solid rgba(74,158,106,.4);color:#9fd4b1;padding:.75rem 1.5rem;border-radius:4px;font-size:.84rem;z-index:999;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.4)';
+        msg.textContent='🎣 Welcome to Pro! Tournaments are now unlocked.';
+        document.body.appendChild(msg);
+        setTimeout(()=>msg.remove(),5000);
+        checkProStatus();
+      }
+    },1000);
+    // Clean URL
+    window.history.replaceState({},'',window.location.pathname);
+  }
+})();
 
 // ===== FEED =====
 async function loadFeed(tab){
