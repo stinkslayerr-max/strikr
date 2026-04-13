@@ -2273,26 +2273,21 @@ async function loadProfile(username){
   if(currentUser&&currentUser.id!==profile.id){const{data:f}=await sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single();isFollowing=!!f;}
   const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
   const initials=username.substring(0,2).toUpperCase();
-  document.getElementById('p-av-text').textContent=initials;
-  // Show avatar image if exists
+  const pAvText=document.getElementById('p-av-text');
   const avImg=document.getElementById('p-av-img');
   const avOverlay=document.getElementById('p-av-overlay');
+  if(pAvText)pAvText.textContent=initials;
   if(profile.avatar_url){
-    avImg.src=profile.avatar_url;avImg.style.display='block';
-    document.getElementById('p-av-text').style.display='none';
+    if(avImg){avImg.src=profile.avatar_url;avImg.style.display='block';}
+    if(pAvText)pAvText.style.display='none';
   } else {
-    avImg.style.display='none';
-    document.getElementById('p-av-text').style.display='flex';
-    document.getElementById('p-av-text').style.alignItems='center';
-    document.getElementById('p-av-text').style.justifyContent='center';
-    document.getElementById('p-av-text').style.width='100%';
-    document.getElementById('p-av-text').style.height='100%';
+    if(avImg)avImg.style.display='none';
+    if(pAvText)pAvText.style.display='';
   }
-  // Only show edit on own profile
   const isOwnProfile=currentUser&&profile.id===currentUser.id;
   if(avOverlay)avOverlay.style.display=isOwnProfile?'block':'none';
-  document.getElementById('p-av').onclick=isOwnProfile?triggerAvatarUpload:null;
-  document.getElementById('p-av').style.cursor=isOwnProfile?'pointer':'default';
+  const pAv=document.getElementById('p-av');
+  if(pAv){pAv.onclick=isOwnProfile?triggerAvatarUpload:null;pAv.style.cursor=isOwnProfile?'pointer':'default';}
   document.getElementById('p-username').textContent=username;
   _followProfileId=profile.id;
   document.getElementById('p-catches').textContent=profileCatches.length;
@@ -2794,7 +2789,8 @@ async function adminDeleteCatch(id,btn){
 function viewMyProfile(){
   if(!currentUser)return;
   const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
-  loadProfile(uname);
+  showPage('profile');
+  setTimeout(()=>loadProfile(uname),50);
 }
 function setMobileNav(tab){
   document.querySelectorAll('.mn-item').forEach(b=>b.classList.remove('active'));
