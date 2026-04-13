@@ -403,6 +403,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 @media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar{display:none}.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
 @media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
 
+/* FLOATING LOG BUTTON */
+.fab{position:fixed;bottom:5rem;right:1.25rem;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--orange);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 3px 16px rgba(232,98,26,.45);display:none;align-items:center;justify-content:center;transition:background .15s}
+.fab:hover{background:var(--orange2)}
+@media(max-width:900px){.fab{display:flex}}
+
 /* MOBILE NAV */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg2);border-top:1px solid var(--border);padding:.5rem 0 calc(.5rem + env(safe-area-inset-bottom));justify-content:space-around}
 .mn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:.35rem .75rem;cursor:pointer;background:none;border:none;color:var(--text3);transition:color .15s;font-size:.58rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-family:var(--font-d)}
@@ -545,7 +550,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <div class="feat" style="border-top:3px solid var(--orange)">
         <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:.5rem">02</div>
         <h3>GPS Waterway Check</h3>
-        <p>When you enter a tournament, your GPS location is captured. We check you're within 2km of a recognised waterway — ocean, harbour, river or lake. No water nearby, no entry.</p>
+        <p>When you enter a tournament, your GPS location is captured. We check you're within 10km of a recognised waterway — ocean, harbour, river or lake. No water nearby, no entry.</p>
       </div>
       <div class="feat" style="border-top:3px solid var(--orange)">
         <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--orange);margin-bottom:.5rem">03</div>
@@ -689,46 +694,18 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <main class="main">
       <!-- FEED -->
       <div id="panel-feed" class="panel active">
-        <div class="panel-hdr"><h2>Feed</h2><button class="btn btn-sm" onclick="document.getElementById('logForm').scrollIntoView({behavior:'smooth'})">+ Log Catch</button></div>
+        <div class="panel-hdr"><h2>Feed</h2><button class="btn btn-sm" onclick="openLogModal()">+ Log Catch</button></div>
         <div class="feed-tabs">
           <button class="f-tab active" onclick="setFeedTab('all',this)">All Catches</button>
           <button class="f-tab" onclick="setFeedTab('following',this)">Following</button>
           <button class="f-tab" onclick="setFeedTab('tournament',this)">Tournaments</button>
-        </div>
-        <div class="log-form" id="logForm">
-          <h3>Log a Catch</h3>
-          <div class="f-grid">
-            <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%" oninput="this.setAttribute('data-val',this.value)"></div>
-            <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
-            <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
-            <div class="ff"><label>Length (cm)</label><input type="number" id="f-len" placeholder="0" min="0"></div>
-            <div class="ff"><label>Method</label><select id="f-meth"><option value="">Select...</option><option>Surface lure</option><option>Soft plastic</option><option>Live bait</option><option>Dead bait</option><option>Fly</option><option>Jigging</option><option>Other</option></select></div>
-            <div class="ff"><label>Tide</label><select id="f-tide"><option value="">Select...</option><option>Incoming</option><option>Outgoing</option><option>High slack</option><option>Low slack</option></select></div>
-            <label class="upload-z f-full" id="uploadZ">
-              <input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-              Add Photo — Tap or Drag
-            </label>
-            <div class="tourn-note f-full" id="tourn-note">Tournament entry: photo must show fish on measurement board with ruler clearly visible. AI scans on submit.</div>
-            <div class="ff f-full"><label>Notes</label><textarea id="f-notes" placeholder="Technique, bait, conditions..."></textarea></div>
-            <input type="hidden" id="f-lat"><input type="hidden" id="f-lng">
-            <div class="f-full" style="display:flex;align-items:center;gap:.85rem;flex-wrap:wrap">
-              <button class="btn" id="post-btn" onclick="submitCatch()" style="padding:.52rem 1.3rem">Post Catch</button>
-              <button type="button" class="btn-outline btn-sm" id="gps-catch-btn" onclick="captureCatchGPS()" style="display:flex;align-items:center;gap:5px;font-size:.74rem">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
-                <span id="gps-catch-label">Pin Location</span>
-              </button>
-              <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-tourn" style="accent-color:var(--orange)" onchange="document.getElementById('tourn-note').style.display=this.checked?'':'none'"> Tournament entry</label>
-              <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-release" style="accent-color:var(--green)"> Release only</label>
-            </div>
-          </div>
         </div>
         <div id="feedContainer"><div class="spin-lg"></div></div>
       </div>
 
       <!-- MY CATCHES -->
       <div id="panel-mycatches" class="panel">
-        <div class="panel-hdr"><h2>My Catches</h2><button class="btn btn-sm" onclick="showPanel('feed')">+ Log Catch</button></div>
+        <div class="panel-hdr"><h2>My Catches</h2><button class="btn btn-sm" onclick="openLogModal()">+ Log Catch</button></div>
         <div id="myStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:1rem"></div>
         <div id="myCatchContainer"><div class="spin-lg"></div></div>
       </div>
@@ -832,6 +809,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     </aside>
   </div>
 
+  <!-- FLOATING LOG BUTTON (mobile) -->
+  <button class="fab" onclick="openLogModal()" title="Log a catch">+</button>
+
   <!-- MOBILE BOTTOM NAV -->
   <nav class="mobile-nav">
     <button class="mn-item active" id="mn-feed" onclick="showPanel('feed');setMobileNav('feed')">
@@ -933,6 +913,48 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
   </div>
 </div>
 
+<!-- LOG CATCH MODAL -->
+<div class="modal-ov" id="logModal">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>Log a Catch</h3>
+    <div class="alert alert-err" id="log-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="log-err-msg"></span></div>
+
+    <!-- Photo required - must be first -->
+    <div class="fg" style="margin-bottom:.85rem">
+      <label>Photo <span style="color:var(--orange)">*Required</span></label>
+      <label class="upload-z" id="uploadZ" style="margin-top:4px">
+        <input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        Add Photo — Tap or Click
+      </label>
+      <div id="f-photo-preview" style="display:none;margin-top:6px"><img id="f-preview-img" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border2)"></div>
+    </div>
+
+    <div class="f-grid">
+      <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
+      <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
+      <div class="ff"><label>Length (cm)</label><input type="number" id="f-len" placeholder="0" min="0"></div>
+      <div class="ff"><label>Method</label><select id="f-meth"><option value="">Select...</option><option>Surface lure</option><option>Soft plastic</option><option>Live bait</option><option>Dead bait</option><option>Fly</option><option>Jigging</option><option>Other</option></select></div>
+      <div class="ff"><label>Tide</label><select id="f-tide"><option value="">Select...</option><option>Incoming</option><option>Outgoing</option><option>High slack</option><option>Low slack</option></select></div>
+      <div class="ff f-full"><label>Notes</label><textarea id="f-notes" placeholder="Technique, bait, conditions..." style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%;resize:vertical;min-height:52px"></textarea></div>
+      <input type="hidden" id="f-lat"><input type="hidden" id="f-lng">
+      <div class="f-full" style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-top:.25rem">
+        <button type="button" class="btn-outline btn-sm" id="gps-catch-btn" onclick="captureCatchGPS()" style="display:flex;align-items:center;gap:5px;font-size:.74rem">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+          <span id="gps-catch-label">Pin Location</span>
+        </button>
+        <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-release" style="accent-color:var(--green)"> Release only</label>
+      </div>
+      <div class="tourn-note f-full" id="tourn-note" style="display:none">Tournament entry: photo must show fish on measurement board with ruler clearly visible.</div>
+    </div>
+
+    <button class="btn btn-full" id="post-btn" onclick="submitCatch()" style="margin-top:1rem">Post Catch</button>
+    <p style="font-family:var(--font-d);font-size:.63rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);text-align:center;margin-top:.65rem">Photo required · AI moderation runs on every upload</p>
+  </div>
+</div>
+
 <!-- ENTER TOURNAMENT MODAL -->
 <div class="modal-ov" id="enterModal">
   <div class="modal" style="max-width:520px">
@@ -946,7 +968,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
         Waiting for GPS...
       </div>
-      <div style="font-size:.75rem;color:var(--text3);margin-bottom:1rem;font-weight:300">You must be within 2km of a recognised waterway (ocean, river, harbour, lake) to enter.</div>
+      <div style="font-size:.75rem;color:var(--text3);margin-bottom:1rem;font-weight:300">You must be within 10km of a recognised waterway (ocean, river, harbour, lake) to enter.</div>
       <div class="alert alert-err" id="gps-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="gps-err-msg"></span></div>
       <button class="btn btn-full" id="gps-btn" onclick="requestGPS()">Check My Location</button>
     </div>
@@ -960,7 +982,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <div class="fg" style="margin-bottom:.85rem">
         <label>Tournament Entry Photo <span style="color:var(--orange)">*Required</span></label>
         <label class="upload-z" id="et-uploadZ" style="margin-top:4px">
-          <input type="file" id="et-photo" accept="image/*" onchange="handleEntryPhoto(this)">
+          <input type="file" id="et-photo" accept="image/*" capture="environment" onchange="handleEntryPhoto(this)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           Upload entry photo
         </label>
@@ -1176,6 +1198,22 @@ async function loadMyCatches(){
 }
 
 // ===== SUBMIT CATCH (social feed) =====
+function openLogModal(){
+  if(!currentUser){showPage('auth');return;}
+  hideAlert('log-err');
+  // Reset form
+  ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes','f-lat','f-lng'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
+  catchPhotoBase64=null;
+  document.getElementById('f-photo').value='';
+  document.getElementById('f-photo-preview').style.display='none';
+  const z=document.getElementById('uploadZ');
+  z.classList.remove('has-photo');
+  z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Add Photo — Tap or Click';
+  const lbl=document.getElementById('gps-catch-label');if(lbl)lbl.textContent='Pin Location';
+  document.getElementById('logModal').classList.add('open');
+}
+
 function handlePhotoSelect(input){
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
@@ -1184,18 +1222,26 @@ function handlePhotoSelect(input){
     catchPhotoBase64=e.target.result.split(',')[1];
     const z=document.getElementById('uploadZ');
     z.classList.add('has-photo');
-    z.querySelector('svg').style.display='none';
-    z.childNodes[0].textContent='';
-    // show mini preview text
+    const preview=document.getElementById('f-photo-preview');
+    const previewImg=document.getElementById('f-preview-img');
+    if(preview&&previewImg){preview.style.display='block';previewImg.src=e.target.result;}
+    // Update upload zone text
     const existing=z.querySelector('.photo-name');
-    if(!existing){const n=document.createElement('div');n.className='photo-name';n.style.cssText='font-size:.78rem;font-weight:500';n.textContent='Photo ready: '+file.name.substring(0,28);z.appendChild(n);}
-    else existing.textContent='Photo ready: '+file.name.substring(0,28);
+    const nameEl=existing||document.createElement('div');
+    nameEl.className='photo-name';nameEl.style.cssText='font-size:.78rem;font-weight:500;margin-top:4px';
+    nameEl.textContent='✓ '+file.name.substring(0,30);
+    if(!existing)z.appendChild(nameEl);
   };
   reader.readAsDataURL(file);
 }
 
 async function submitCatch(){
   if(!currentUser){showPage('auth');return;}
+  hideAlert('log-err');
+
+  // Photo is required
+  if(!catchPhotoBase64)return showAlert('log-err','A photo is required to log a catch.');
+
   const spSel=document.getElementById('f-sp').value;
   const spCustom=document.getElementById('f-sp-custom').value.trim();
   const sp=spSel==='Other'?spCustom:spSel;
@@ -1292,6 +1338,8 @@ async function submitCatch(){
 
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
+  const preview=document.getElementById('f-photo-preview');if(preview)preview.style.display='none';
+  closeModal();
   attachLikeHandlers();loadSidebar();checkAndAwardBadges();
 }
 
@@ -1358,8 +1406,8 @@ function requestGPS(){
         },800);
       }else{
         document.getElementById('gps-status').className='gps-status gps-bad';
-        document.getElementById('gps-status').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>No recognised waterway within 2km';
-        showAlert('gps-err','You need to be within 2km of a waterway to enter a tournament. Make sure you\'re at your fishing spot and try again.');
+        document.getElementById('gps-status').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>No recognised waterway within 10km';
+        showAlert('gps-err','You need to be within 10km of a waterway to enter a tournament. Make sure you\'re at your fishing spot and try again.');
       }
     },
     (err)=>{
@@ -1394,10 +1442,10 @@ async function checkWaterway(lat,lng){
     if(bb){
       const latDiff=Math.abs(lat-(parseFloat(bb[0])+parseFloat(bb[1]))/2)*111;
       const lngDiff=Math.abs(lng-(parseFloat(bb[2])+parseFloat(bb[3]))/2)*111;
-      if(latDiff<2&&lngDiff<2&&(isWater||hasWater)){return{near:true,name:data.display_name.split(',')[0],distKm:Math.round(Math.sqrt(latDiff*latDiff+lngDiff*lngDiff)*10)/10};}
+      if(latDiff<10&&lngDiff<10&&(isWater||hasWater)){return{near:true,name:data.display_name.split(',')[0],distKm:Math.round(Math.sqrt(latDiff*latDiff+lngDiff*lngDiff)*10)/10};}
     }
     // Fallback: try a search for nearby water
-    const searchUrl=`https://nominatim.openstreetmap.org/search?q=water&lat=${lat}&lon=${lng}&format=json&limit=1&radius=2000`;
+    const searchUrl=`https://nominatim.openstreetmap.org/search?q=water&lat=${lat}&lon=${lng}&format=json&limit=1&radius=10000`;
     const r2=await fetch(searchUrl,{headers:{'User-Agent':'Strikr-App/1.0'}});
     const results=await r2.json();
     if(results&&results.length>0){
