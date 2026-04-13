@@ -1405,22 +1405,58 @@ async function loadActiveTournamentsForSelect(){
 function handlePhotoSelect(input){
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
+
+  // 10MB size limit check before processing
+  if(file.size>10*1024*1024){
+    alert('Photo is too large (max 10MB). Please choose a smaller image.');
+    input.value='';return;
+  }
+
   const reader=new FileReader();
   reader.onload=e=>{
-    catchPhotoBase64=e.target.result.split(',')[1];
-    const z=document.getElementById('uploadZ');
-    z.classList.add('has-photo');
-    const preview=document.getElementById('f-photo-preview');
-    const previewImg=document.getElementById('f-preview-img');
-    if(preview&&previewImg){preview.style.display='block';previewImg.src=e.target.result;}
-    // Update upload zone text
-    const existing=z.querySelector('.photo-name');
-    const nameEl=existing||document.createElement('div');
-    nameEl.className='photo-name';nameEl.style.cssText='font-size:.78rem;font-weight:500;margin-top:4px';
-    nameEl.textContent='✓ '+file.name.substring(0,30);
-    if(!existing)z.appendChild(nameEl);
+    // Auto-resize to max 1200px wide, 80% quality
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;
+      let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,0,0,w,h);
+      const compressed=canvas.toDataURL('image/jpeg',0.82);
+      catchPhotoBase64=compressed.split(',')[1];
+
+      // Show preview
+      const z=document.getElementById('uploadZ');
+      z.classList.add('has-photo');
+      const preview=document.getElementById('f-photo-preview');
+      const previewImg=document.getElementById('f-preview-img');
+      if(preview&&previewImg){preview.style.display='block';previewImg.src=compressed;}
+
+      // Size info
+      const kb=Math.round(catchPhotoBase64.length*0.75/1024);
+      const existing=z.querySelector('.photo-name');
+      const nameEl=existing||document.createElement('div');
+      nameEl.className='photo-name';
+      nameEl.style.cssText='font-size:.78rem;font-weight:500;margin-top:4px;color:var(--green)';
+      nameEl.textContent=`✓ Photo ready — ${kb}KB`;
+      if(!existing)z.appendChild(nameEl);
+
+      // Toast confirmation
+      showPhotoToast(`✓ Photo added — ${kb}KB`);
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
+}
+
+function showPhotoToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(74,158,106,.4);border-left:3px solid var(--green);color:#9fd4b1;padding:.6rem 1.25rem;border-radius:var(--r);font-size:.82rem;z-index:999;font-weight:500;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.4)';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},2500);
 }
 
 async function submitCatch(){
@@ -1581,16 +1617,31 @@ function openEnterModal(tid,tname){
 function handleEntryPhoto(input){
   if(!input.files||!input.files[0])return;
   const file=input.files[0];
+  if(file.size>10*1024*1024){alert('Photo is too large (max 10MB).');input.value='';return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    entryPhotoBase64=e.target.result.split(',')[1];
-    document.getElementById('et-preview-img').src=e.target.result;
-    document.getElementById('et-photo-preview').style.display='block';
-    const z=document.getElementById('et-uploadZ');
-    z.classList.add('has-photo');
-    const n=z.querySelector('.pname');
-    if(n)n.textContent='Photo ready: '+file.name.substring(0,28);
-    else{const d=document.createElement('div');d.className='pname';d.style.cssText='font-size:.78rem;font-weight:500;margin-top:3px';d.textContent='Photo ready: '+file.name.substring(0,28);z.appendChild(d);}
+    const img=new Image();
+    img.onload=()=>{
+      const MAX=1200;
+      let w=img.width,h=img.height;
+      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      const compressed=canvas.toDataURL('image/jpeg',0.82);
+      entryPhotoBase64=compressed.split(',')[1];
+      document.getElementById('et-preview-img').src=compressed;
+      document.getElementById('et-photo-preview').style.display='block';
+      const z=document.getElementById('et-uploadZ');
+      z.classList.add('has-photo');
+      const kb=Math.round(entryPhotoBase64.length*0.75/1024);
+      const n=z.querySelector('.pname');
+      const txt=`✓ Photo ready — ${kb}KB`;
+      if(n)n.textContent=txt;
+      else{const d=document.createElement('div');d.className='pname';d.style.cssText='font-size:.78rem;font-weight:500;margin-top:3px;color:var(--green)';d.textContent=txt;z.appendChild(d);}
+      showPhotoToast(`✓ Entry photo added — ${kb}KB`);
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
