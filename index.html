@@ -344,9 +344,64 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .exist-name{font-family:var(--font-d);font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
 .exist-meta{font-size:.72rem;color:var(--text3);margin-top:2px;font-weight:300}
 
-@media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar,.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
-@media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}}
-</style>
+/* PROFILE PAGE */
+.profile-page{min-height:100vh;padding-top:56px}
+.profile-hero{background:var(--bg2);border-bottom:1px solid var(--border);padding:2.5rem 1.75rem 2rem}
+.profile-hero-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;gap:1.75rem;align-items:center}
+.profile-av{width:88px;height:88px;border-radius:50%;background:var(--orange-dim);border:2px solid var(--orange-b);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:2.2rem;font-weight:800;color:var(--orange);flex-shrink:0}
+.profile-meta{flex:1}
+.profile-username{font-family:var(--font-d);font-size:2.2rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1;margin-bottom:.4rem;display:flex;align-items:center;gap:.65rem}
+.profile-bio{font-size:.84rem;color:var(--text2);font-weight:300;line-height:1.6;margin-bottom:.85rem}
+.profile-counts{display:flex;gap:1.75rem}
+.pc-item strong{display:block;font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--text);letter-spacing:.04em;line-height:1}
+.pc-item span{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+.profile-actions{display:flex;flex-direction:column;gap:.5rem;align-items:flex-end}
+.follow-btn{font-family:var(--font-d);font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.45rem 1.4rem;border-radius:var(--r);transition:all .15s;cursor:pointer}
+.follow-btn.following{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.follow-btn.following:hover{border-color:var(--red);color:#f4a09a}
+.follow-btn.not-following{background:var(--orange);color:#fff;border:none}
+.follow-btn.not-following:hover{background:var(--orange2)}
+.profile-stats-bar{background:var(--bg2);border-bottom:1px solid var(--border)}
+.profile-stats-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.pstat{background:var(--bg2);padding:1.1rem;text-align:center}
+.pstat strong{display:block;font-family:var(--font-d);font-size:1.8rem;font-weight:800;color:var(--orange);letter-spacing:.04em;line-height:1}
+.pstat span{font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-top:3px;display:block}
+.profile-tabs{border-bottom:1px solid var(--border);background:var(--bg2)}
+.profile-tabs-inner{max-width:900px;margin:0 auto;display:flex}
+.ptab{background:none;border:none;border-bottom:2px solid transparent;padding:.65rem 1.25rem;color:var(--text3);font-family:var(--font-d);font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;transition:all .15s;cursor:pointer;margin-bottom:-1px}
+.ptab.active{color:var(--orange);border-bottom-color:var(--orange)}
+.profile-content{max-width:900px;margin:0 auto;padding:1.5rem 1.75rem}
+.catch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.grid-item{aspect-ratio:1;background:var(--bg3);overflow:hidden;cursor:pointer;position:relative}
+.grid-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s}
+.grid-item:hover img{transform:scale(1.04)}
+.grid-item-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;color:var(--text3)}
+.grid-item-placeholder svg{width:22px;height:22px;opacity:.25}
+.grid-item-placeholder span{font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.4}
+.grid-overlay{position:absolute;inset:0;background:rgba(15,15,14,.65);display:flex;align-items:center;justify-content:center;gap:.85rem;opacity:0;transition:opacity .2s}
+.grid-item:hover .grid-overlay{opacity:1}
+.grid-ov-stat{display:flex;align-items:center;gap:4px;color:#fff;font-family:var(--font-d);font-size:.78rem;font-weight:700}
+.pb-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border)}
+.pb-card{background:var(--bg2);padding:1.25rem;text-align:center}
+.pb-species{font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.35rem}
+.pb-val{font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--orange);letter-spacing:.04em;line-height:1}
+.pb-unit{font-size:.72rem;color:var(--text3);margin-top:3px;font-weight:300}
+.pb-date{font-size:.7rem;color:var(--text3);margin-top:.35rem;font-weight:300}
+.profile-not-found{text-align:center;padding:5rem 1rem;color:var(--text3)}
+.profile-not-found h2{font-family:var(--font-d);font-size:2rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;color:var(--text)}
+.profile-not-found p{font-size:.84rem;font-weight:300}
+
+/* CATCH LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:1rem}
+.lightbox.open{display:flex}
+.lb-inner{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:560px;max-height:90vh;overflow-y:auto}
+.lb-img{width:100%;max-height:340px;object-fit:cover;display:block}
+.lb-info{padding:1.1rem}
+.lb-close{position:absolute;top:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border2);color:var(--text);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem}
+
+@media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
+
+
 </head>
 <body>
 
@@ -670,6 +725,78 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
   </div>
 </div>
 
+<!-- PROFILE PAGE -->
+<div id="page-profile" class="page">
+  <div class="profile-page">
+    <div id="profile-loading" style="text-align:center;padding:5rem 1rem"><div class="spin-lg"></div></div>
+    <div id="profile-not-found" class="profile-not-found" style="display:none">
+      <h2>Angler not found</h2>
+      <p>This profile doesn't exist or has been removed.</p>
+      <button class="btn" onclick="goHome()" style="margin-top:1.5rem;padding:.52rem 1.5rem">Back to Strikr</button>
+    </div>
+    <div id="profile-content" style="display:none">
+      <div class="profile-hero">
+        <div class="profile-hero-inner">
+          <div class="profile-av" id="p-av">?</div>
+          <div class="profile-meta">
+            <div class="profile-username">
+              <span id="p-username">username</span>
+              <span id="p-pro-badge" style="display:none;background:var(--orange);color:#fff;font-size:.6rem;padding:2px 7px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase">PRO</span>
+            </div>
+            <div class="profile-counts">
+              <div class="pc-item"><strong id="p-catches">0</strong><span>Catches</span></div>
+              <div class="pc-item"><strong id="p-followers">0</strong><span>Followers</span></div>
+              <div class="pc-item"><strong id="p-following">0</strong><span>Following</span></div>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="follow-btn not-following" id="follow-btn" onclick="toggleFollow()">Follow</button>
+            <button class="btn-ghost btn-sm" onclick="shareProfile()" style="font-size:.72rem">Share Profile</button>
+          </div>
+        </div>
+      </div>
+      <div class="profile-stats-bar">
+        <div class="profile-stats-inner">
+          <div class="pstat"><strong id="ps-total">0</strong><span>Total Catches</span></div>
+          <div class="pstat"><strong id="ps-species">0</strong><span>Species</span></div>
+          <div class="pstat"><strong id="ps-pb">—</strong><span>PB Weight</span></div>
+          <div class="pstat"><strong id="ps-wins">0</strong><span>Tournament Wins</span></div>
+        </div>
+      </div>
+      <div class="profile-tabs">
+        <div class="profile-tabs-inner">
+          <button class="ptab active" onclick="setProfileTab('grid',this)">Catches</button>
+          <button class="ptab" onclick="setProfileTab('pbs',this)">PB Wall</button>
+          <button class="ptab" onclick="setProfileTab('tournaments',this)">Tournaments</button>
+        </div>
+      </div>
+      <div class="profile-content">
+        <div id="ptab-grid">
+          <div class="catch-grid" id="p-catch-grid"></div>
+          <div id="p-no-catches" style="display:none;text-align:center;padding:3rem;color:var(--text3);font-size:.84rem;font-weight:300">No catches logged yet.</div>
+        </div>
+        <div id="ptab-pbs" style="display:none">
+          <div class="pb-wall" id="p-pb-wall"></div>
+          <div id="p-no-pbs" style="display:none;text-align:center;padding:3rem;color:var(--text3);font-size:.84rem;font-weight:300">No PBs recorded yet.</div>
+        </div>
+        <div id="ptab-tournaments" style="display:none">
+          <div id="p-tourn-list"></div>
+          <div id="p-no-tourns" style="display:none;text-align:center;padding:3rem;color:var(--text3);font-size:.84rem;font-weight:300">No tournament entries yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATCH LIGHTBOX -->
+<div class="lightbox" id="catchLightbox" onclick="if(event.target===this)closeLightbox()">
+  <button class="lb-close" onclick="closeLightbox()">✕</button>
+  <div class="lb-inner">
+    <img class="lb-img" id="lb-img" src="" alt="Catch photo" style="display:none">
+    <div class="lb-info" id="lb-info"></div>
+  </div>
+</div>
+
 <!-- ENTER TOURNAMENT MODAL -->
 <div class="modal-ov" id="enterModal">
   <div class="modal" style="max-width:520px">
@@ -750,7 +877,16 @@ var entryPhotoBase64=null,catchPhotoBase64=null;
 (async function(){
   const{data:{session}}=await sb.auth.getSession();
   if(session)await doLogin(session.user);
-  else showPage('landing');
+  else{
+    // Check if visiting a profile URL directly
+    if(window.location.hash.startsWith('#/profile/')){
+      showPage('landing');
+      const u=window.location.hash.replace('#/profile/','');
+      if(u)loadProfile(u);
+    }else{
+      showPage('landing');
+    }
+  }
 })();
 
 sb.auth.onAuthStateChange(async(event,session)=>{
@@ -1418,7 +1554,7 @@ function catchCardHTML(c){
     else if(vs==='rejected')badge='<span class="vbadge vb-fail"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>';
   }
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
-  return `<div class="catch-card"><div class="cc-head"><div class="av">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong>${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act">Share</button></div></div>`;
+  return `<div class="catch-card"><div class="cc-head"><div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button></div></div>`;
 }
 
 function attachLikeHandlers(){
@@ -1433,7 +1569,109 @@ function attachLikeHandlers(){
 }
 
 // ===== HELPERS =====
-function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);}
+// ===== PROFILE =====
+var profileUsername=null,profileData=null,profileCatches=[],isFollowing=false;
+
+async function loadProfile(username){
+  profileUsername=username;
+  showPage('profile');
+  document.getElementById('profile-loading').style.display='block';
+  document.getElementById('profile-content').style.display='none';
+  document.getElementById('profile-not-found').style.display='none';
+  const{data:profile,error}=await sb.from('profiles').select('*').eq('username',username).single();
+  if(error||!profile){document.getElementById('profile-loading').style.display='none';document.getElementById('profile-not-found').style.display='block';return;}
+  profileData=profile;
+  const{data:catches}=await sb.from('catches').select('*').eq('user_id',profile.id).order('created_at',{ascending:false});
+  profileCatches=catches||[];
+  const{count:followerCount}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',profile.id);
+  const{count:followingCount}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',profile.id);
+  if(currentUser&&currentUser.id!==profile.id){const{data:f}=await sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single();isFollowing=!!f;}
+  const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
+  const initials=username.substring(0,2).toUpperCase();
+  document.getElementById('p-av').textContent=initials;
+  document.getElementById('p-username').textContent=username;
+  document.getElementById('p-catches').textContent=profileCatches.length;
+  document.getElementById('p-followers').textContent=followerCount||0;
+  document.getElementById('p-following').textContent=followingCount||0;
+  if(profile.is_pro)document.getElementById('p-pro-badge').style.display='inline';
+  const pb=profileCatches.reduce((m,x)=>x.weight_kg>m?x.weight_kg:m,0);
+  const species=[...new Set(profileCatches.map(x=>x.species).filter(Boolean))];
+  document.getElementById('ps-total').textContent=profileCatches.length;
+  document.getElementById('ps-species').textContent=species.length;
+  document.getElementById('ps-pb').textContent=pb?pb+'kg':'—';
+  document.getElementById('ps-wins').textContent=entries?entries.length:0;
+  const followBtn=document.getElementById('follow-btn');
+  if(!currentUser||currentUser.id===profile.id){followBtn.style.display='none';}
+  else{followBtn.className='follow-btn '+(isFollowing?'following':'not-following');followBtn.textContent=isFollowing?'Following':'Follow';}
+  renderCatchGrid();renderPBWall();renderTournamentHistory(entries||[]);
+  document.title=username+' · Strikr';
+  document.getElementById('profile-loading').style.display='none';
+  document.getElementById('profile-content').style.display='block';
+}
+
+function renderCatchGrid(){
+  const grid=document.getElementById('p-catch-grid');
+  if(profileCatches.length===0){document.getElementById('p-no-catches').style.display='block';grid.style.display='none';return;}
+  grid.style.display='grid';
+  grid.innerHTML=profileCatches.map(c=>`<div class="grid-item" onclick="openLightbox('${c.id}')">${c.photo_data?`<img src="data:image/jpeg;base64,${c.photo_data}" alt="${c.species||'Catch'}" loading="lazy"><div class="grid-overlay"><div class="grid-ov-stat"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>0</div>${c.weight_kg?`<div class="grid-ov-stat">${c.weight_kg}kg</div>`:''}</div>`:`<div class="grid-item-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg><span>${c.species||'Catch'}</span>${c.weight_kg?`<span style="color:var(--orange)">${c.weight_kg}kg</span>`:''}</div>`}</div>`).join('');
+}
+
+function renderPBWall(){
+  const wall=document.getElementById('p-pb-wall');
+  const pbs={};
+  profileCatches.forEach(c=>{if(!c.species)return;if(!pbs[c.species]||c.weight_kg>pbs[c.species].weight_kg)pbs[c.species]=c;});
+  const pbArr=Object.values(pbs).sort((a,b)=>(b.weight_kg||0)-(a.weight_kg||0));
+  if(pbArr.length===0){document.getElementById('p-no-pbs').style.display='block';wall.style.display='none';return;}
+  wall.innerHTML=pbArr.map(c=>`<div class="pb-card"><div class="pb-species">${c.species}</div><div class="pb-val">${c.weight_kg?c.weight_kg+'<span style="font-size:1rem">kg</span>':c.length_cm?c.length_cm+'<span style="font-size:1rem">cm</span>':'—'}</div><div class="pb-date">${new Date(c.created_at).toLocaleDateString('en-AU')}</div></div>`).join('');
+}
+
+function renderTournamentHistory(entries){
+  const list=document.getElementById('p-tourn-list');
+  if(entries.length===0){document.getElementById('p-no-tourns').style.display='block';return;}
+  list.innerHTML=entries.map(e=>`<div style="background:var(--bg2);border:1px solid var(--border);padding:.9rem 1rem;border-radius:var(--r);margin-bottom:.55rem;display:flex;align-items:center;gap:.85rem"><div style="width:36px;height:36px;border-radius:50%;background:var(--orange-dim);border:1px solid var(--orange-b);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div><div style="flex:1"><div style="font-size:.84rem;color:var(--text);font-weight:500">${e.species||'Unknown'} entry${e.weight_kg?' · '+e.weight_kg+'kg':''}</div><div style="font-size:.72rem;color:var(--text3);font-weight:300">${new Date(e.created_at).toLocaleDateString('en-AU')}</div></div><span style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(74,158,106,.1);color:#9fd4b1;padding:3px 8px;border-radius:3px;border:1px solid rgba(74,158,106,.2)">Verified</span></div>`).join('');
+}
+
+function openLightbox(catchId){
+  const c=profileCatches.find(x=>x.id===catchId);if(!c)return;
+  const img=document.getElementById('lb-img');
+  if(c.photo_data){img.src='data:image/jpeg;base64,'+c.photo_data;img.style.display='block';}else img.style.display='none';
+  document.getElementById('lb-info').innerHTML=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem">${c.species?`<span class="sp-tag">${c.species}</span>`:''}<span style="font-size:.72rem;color:var(--text3);font-weight:300">${timeAgo(c.created_at)}</span></div>${(c.weight_kg||c.length_cm||c.method)?`<div style="display:flex;gap:1.25rem;margin-bottom:.75rem">${c.weight_kg?`<div><strong style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--orange)">${c.weight_kg}kg</strong><div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--font-d);font-weight:600">Weight</div></div>`:''} ${c.length_cm?`<div><strong style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--orange)">${c.length_cm}cm</strong><div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--font-d);font-weight:600">Length</div></div>`:''} ${c.method?`<div><strong style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;color:var(--text)">${c.method}</strong><div style="font-size:.62rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;font-family:var(--font-d);font-weight:600">Method</div></div>`:''}</div>`:''}${c.location?`<div style="font-size:.8rem;color:var(--orange);margin-bottom:.4rem">📍 ${c.location}</div>`:''}${c.notes?`<div style="font-size:.8rem;color:var(--text2);line-height:1.55;font-weight:300">${c.notes}</div>`:''}`;
+  document.getElementById('catchLightbox').classList.add('open');
+}
+
+function closeLightbox(){document.getElementById('catchLightbox').classList.remove('open');}
+
+function setProfileTab(tab,btn){
+  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('ptab-grid').style.display=tab==='grid'?'block':'none';
+  document.getElementById('ptab-pbs').style.display=tab==='pbs'?'block':'none';
+  document.getElementById('ptab-tournaments').style.display=tab==='tournaments'?'block':'none';
+}
+
+async function toggleFollow(){
+  if(!currentUser){showPage('auth');switchTab('signup');return;}
+  const btn=document.getElementById('follow-btn');
+  if(isFollowing){
+    await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',profileData.id);
+    isFollowing=false;btn.className='follow-btn not-following';btn.textContent='Follow';
+    const el=document.getElementById('p-followers');el.textContent=parseInt(el.textContent)-1;
+  }else{
+    await sb.from('follows').insert({follower_id:currentUser.id,following_id:profileData.id});
+    isFollowing=true;btn.className='follow-btn following';btn.textContent='Following';
+    const el=document.getElementById('p-followers');el.textContent=parseInt(el.textContent)+1;
+  }
+}
+
+function shareProfile(){
+  const url='https://strikr.vercel.app#/profile/'+profileUsername;
+  if(navigator.share){navigator.share({title:profileUsername+' on Strikr',url});}
+  else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/profile/')){const u=hash.replace('#/profile/','');if(u)loadProfile(u);}}
+window.addEventListener('hashchange',handleHash);
+
+function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
 function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();}
 function goHome(){showPage(currentUser?'app':'landing');}
 function updateNav(u){if(u){document.getElementById('nav-auth').style.display='none';document.getElementById('nav-user').style.display='flex';document.getElementById('nav-av').textContent=u.substring(0,2).toUpperCase();document.getElementById('nav-uname').textContent=u;}else{document.getElementById('nav-auth').style.display='flex';document.getElementById('nav-user').style.display='none';}}
