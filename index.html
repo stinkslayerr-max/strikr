@@ -940,6 +940,24 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
   </div>
 </div>
 
+<!-- EDIT TOURNAMENT MODAL -->
+<div class="modal-ov" id="editTournModal">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>Edit Tournament</h3>
+    <input type="hidden" id="et-tid">
+    <div class="af-grid" style="gap:.7rem;margin-bottom:1rem">
+      <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Tournament Name</label><input type="text" id="et-tname" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Prize Pool ($)</label><input type="number" id="et-tprize" min="0" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">End Date</label><input type="datetime-local" id="et-tends" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+    </div>
+    <div style="display:flex;gap:.65rem">
+      <button class="btn-outline btn-full" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-full" onclick="saveEditTournament()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- DELETE TOURNAMENT MODAL -->
 <div class="modal-ov" id="deleteModal">
   <div class="modal" style="max-width:380px;text-align:center">
@@ -1944,6 +1962,7 @@ async function loadAdminTourns(){
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.45rem;flex-shrink:0">
+          ${isActive?`<button class="btn btn-sm" onclick="editTournament('${t.id}','${t.name.replace(/'/g,"\\'")}',${t.prize_pool},'${t.ends_at}')">Edit</button>`:''}
           ${isActive?`<button class="btn btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End Tournament</button>`:''}
           <button class="btn btn-sm btn-danger" onclick="deleteTournament('${t.id}',this,'${t.name}')">Delete</button>
           ${isActive?`<button class="btn-outline btn-sm" onclick="recalcPool(this)" style="font-size:.7rem">Recalc Pool</button>`:''}
@@ -1973,6 +1992,27 @@ async function createTournament(){
   if(error)return showAlert('ct-err',error.message);
   ['ct-name','ct-desc','ct-prize','ct-start','ct-end'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('ct-form').style.display='none';
+  loadAdminTourns();loadSidebar();
+}
+
+function editTournament(tid,name,prize,endsAt){
+  document.getElementById('et-tid').value=tid;
+  document.getElementById('et-tname').value=name;
+  document.getElementById('et-tprize').value=prize;
+  // Format datetime-local value
+  document.getElementById('et-tends').value=new Date(endsAt).toISOString().slice(0,16);
+  document.getElementById('editTournModal').classList.add('open');
+}
+
+async function saveEditTournament(){
+  const tid=document.getElementById('et-tid').value;
+  const name=document.getElementById('et-tname').value.trim();
+  const prize=parseFloat(document.getElementById('et-tprize').value)||0;
+  const ends=document.getElementById('et-tends').value;
+  if(!name||!ends)return;
+  const{error}=await sb.from('tournaments').update({name,prize_pool:prize,ends_at:ends}).eq('id',tid);
+  if(error){alert('Error: '+error.message);return;}
+  closeModal();
   loadAdminTourns();loadSidebar();
 }
 
