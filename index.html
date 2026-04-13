@@ -1208,8 +1208,10 @@ async function doLogin(user){
   if(!profile){await sb.auth.signOut();showPage('landing');return;}
   currentUser=user;
   const uname=user.user_metadata?.username||user.email.split('@')[0];
-  updateNav(uname);showPage('app');loadFeed('all');loadSidebar();loadModCount();checkProStatus();
-  setTimeout(()=>checkAndAwardBadges(),2000);
+  updateNav(uname);showPage('app');loadFeed('all');
+  // Defer non-critical calls so feed loads first
+  setTimeout(()=>{loadSidebar();loadModCount();checkProStatus();},500);
+  setTimeout(()=>checkAndAwardBadges(),3000);
   // Show admin nav only for admin account
   const isAdmin=user.email==='stinkslayerr@gmail.com';
   document.getElementById('admin-sec').style.display=isAdmin?'':'none';
@@ -1493,49 +1495,18 @@ async function submitCatch(){
 
   setLoading('post-btn',true,'Post Catch');
 
-  // ── AI photo moderation ─────────────────────────────────────────
-  let photoStatus='none';
-  let photoFlag=false;
-  let photoReason=null;
-
-  if(catchPhotoBase64){
-    try{
-      const modResult=await runPhotoModeration(catchPhotoBase64,sp,wt);
-      if(modResult.reject){
-        setLoading('post-btn',false,'Post Catch');
-        alert('Photo rejected: '+modResult.reason+'\n\nPlease upload an appropriate fishing photo.');
-        return;
-      }
-      if(modResult.flag){photoStatus='flagged';photoFlag=true;photoReason=modResult.reason;}
-      else photoStatus='approved';
-    }catch(e){
-      // If AI fails, allow post but flag for review
-      photoStatus='flagged';photoFlag=true;photoReason='AI moderation unavailable — flagged for manual review.';
-    }
-  }
-
-  // ── AI size plausibility check (if photo + size provided) ───────
-  if(catchPhotoBase64&&wt&&!photoFlag){
-    try{
-      const sizeCheck=await runSizePlausibilityCheck(catchPhotoBase64,sp,wt,len);
-      if(sizeCheck.suspicious){
-        photoStatus='flagged';photoFlag=true;
-        photoReason=(photoReason?photoReason+' ':'')+sizeCheck.reason;
-      }
-    }catch(e){}
-  }
-
   const catchDate=document.getElementById('f-date').value||null;
 
+  // Post catch immediately — AI moderation runs in background
   const{data,error}=await sb.from('catches').insert({
     user_id:currentUser.id,username:uname,species:sp,
     location:loc||null,weight_kg:wt,length_cm:len,
     method:meth||null,notes:notes||null,
-    tournament_entry:isTour,verified:!isTour&&!photoFlag,
+    tournament_entry:isTour,verified:!isTour,
     photo_data:catchPhotoBase64||null,
     catch_lat:catchLat,catch_lng:catchLng,
-    photo_status:catchPhotoBase64?photoStatus:'none',
-    moderation_reason:photoReason,
+    photo_status:catchPhotoBase64?'pending':'none',
+    moderation_reason:null,
     catch_date:catchDate
   }).select().single();
 
@@ -1543,54 +1514,58 @@ async function submitCatch(){
   if(error){alert('Error: '+error.message);return;}
 
   // Reset form
-  ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes','f-lat','f-lng'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fDate2=document.getElementById('f-date');if(fDate2)fDate2.value=new Date().toISOString().slice(0,10);
   const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
-  document.getElementById('f-tourn').checked=false;
-  document.getElementById('tourn-note').style.display='none';
+  const savedPhotoBase64=catchPhotoBase64;
   catchPhotoBase64=null;
   document.getElementById('f-photo').value='';
+  document.getElementById('f-photo-preview').style.display='none';
   const z=document.getElementById('uploadZ');
   z.classList.remove('has-photo');
-  z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Add Photo — Tap or Drag';
+  z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span id="upload-label-text">📷 Add Photo — gallery or camera</span>';
 
-  if(photoFlag){
-    // Show under-review notice
-    const msg=document.createElement('div');
-    msg.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(212,136,42,.4);color:#f4c87a;padding:.75rem 1.5rem;border-radius:4px;font-size:.84rem;z-index:999;font-weight:500;max-width:320px;text-align:center';
-    msg.textContent='Catch posted — photo is under review and will appear once approved.';
-    document.body.appendChild(msg);
-    setTimeout(()=>msg.remove(),5000);
-    loadModCount();
-  }
+  // Close modal, show success, go to feed
+  closeModal();
+  showPhotoToast('🎣 Catch posted!');
+  showPanel('feed');
+  const activeNav=document.querySelector('.s-nav a');if(activeNav)setNav(activeNav);
 
+  // Add to feed
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
-  const preview=document.getElementById('f-photo-preview');if(preview)preview.style.display='none';
+  attachLikeHandlers();loadSidebar();checkAndAwardBadges();
 
-  // If tournament tab — also submit as tournament entry
+  // Tournament entry if on tournament tab
   if(logTab==='tourn'){
     const tid=document.getElementById('f-tourn-id').value;
-    if(tid&&sp&&catchPhotoBase64){
+    if(tid&&sp&&savedPhotoBase64){
       await sb.from('tournament_entries').insert({
-        tournament_id:tid,
-        user_id:currentUser.id,
-        username:uname,
-        species:sp,
-        weight_kg:wt,
-        length_cm:len,
-        method:meth||null,
-        verified:false,
-        verification_status:'pending',
-        photo_data:catchPhotoBase64,
-        gps_lat:catchLat,
-        gps_lng:catchLng
+        tournament_id:tid,user_id:currentUser.id,username:uname,
+        species:sp,weight_kg:wt,length_cm:len,method:meth||null,
+        verified:false,verification_status:'pending',
+        photo_data:savedPhotoBase64,gps_lat:catchLat,gps_lng:catchLng
       });
       redistributePool();
     }
   }
 
-  closeModal();
-  attachLikeHandlers();loadSidebar();checkAndAwardBadges();
+  // AI moderation in background — doesn't block user
+  if(savedPhotoBase64){
+    (async()=>{
+      try{
+        const modResult=await runPhotoModeration(savedPhotoBase64,sp,wt);
+        let status='approved',reason=null;
+        if(modResult.reject||modResult.flag){status='flagged';reason=modResult.reason;}
+        if(status==='approved'&&wt){
+          const sizeCheck=await runSizePlausibilityCheck(savedPhotoBase64,sp,wt,len);
+          if(sizeCheck.suspicious){status='flagged';reason=sizeCheck.reason;}
+        }
+        await sb.from('catches').update({photo_status:status,moderation_reason:reason,verified:status!=='flagged'&&!isTour}).eq('id',data.id);
+        if(status==='flagged')loadModCount();
+      }catch(e){}
+    })();
+  }
 }
 
 // ===== TOURNAMENT ENTRY =====
