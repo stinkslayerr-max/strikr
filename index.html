@@ -1981,6 +1981,9 @@ async function doDeleteTournament(tid,el){
   await sb.from('tournament_entries').delete().eq('tournament_id',tid);
   const{error}=await sb.from('tournaments').delete().eq('id',tid);
   if(error){btn.disabled=false;btn.textContent='Delete';alert('Error: '+error.message);return;}
+  // Force remove the card from DOM immediately
+  const card=btn.closest('div[style*="border-left"]');
+  if(card)card.remove();
   loadAdminTourns();loadSidebar();
   await redistributePool();
 }
