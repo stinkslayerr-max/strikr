@@ -907,7 +907,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <div id="profile-content" style="display:none">
       <div class="profile-hero">
         <div class="profile-hero-inner">
-          <div class="profile-av" id="p-av">?</div>
+          <div class="profile-av" id="p-av" style="position:relative;cursor:pointer;overflow:hidden" onclick="triggerAvatarUpload()">
+            <span id="p-av-text">?</span>
+            <img id="p-av-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:50%">
+            <div id="p-av-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);padding:4px 0;text-align:center;font-size:.55rem;color:#fff;font-weight:600;letter-spacing:.05em">EDIT</div>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
+          </div>
           <div class="profile-meta">
             <div class="profile-username">
               <span id="p-username">username</span>
@@ -1095,7 +1100,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <div class="fg" style="margin-bottom:.85rem">
         <label>Tournament Entry Photo <span style="color:var(--orange)">*Required</span></label>
         <label class="upload-z" id="et-uploadZ" style="margin-top:4px">
-          <input type="file" id="et-photo" accept="image/*" capture="environment" onchange="handleEntryPhoto(this)">
+          <input type="file" id="et-photo" accept="image/*;capture=camera" capture="environment" onchange="handleEntryPhoto(this)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
           📷 Take Photo — camera only
         </label>
@@ -1145,6 +1150,7 @@ const sb=window.supabase.createClient(SURL,SKEY);
 var currentUser=null,currentFeedTab='all',activeTournId=null,activeTournName=null;
 var gpsLat=null,gpsLng=null,gpsVerified=false;
 var entryPhotoBase64=null,catchPhotoBase64=null;
+var avatarCache={}; // username -> avatar_url
 
 (async function(){
   const{data:{session}}=await sb.auth.getSession();
@@ -1345,6 +1351,13 @@ async function loadFeed(tab){
   }
   const{data:catches,error}=await q;
   if(error||!catches||catches.length===0){c.innerHTML=error?'<div class="empty-state"><p>Could not load feed.</p></div>':'<div class="empty-state"><p>No catches yet — be the first to log one!</p></div>';return;}
+  // Pre-fetch avatars for users in this batch
+  const usernames=[...new Set(catches.map(x=>x.username).filter(Boolean))];
+  const uncached=usernames.filter(u=>!avatarCache[u]);
+  if(uncached.length>0){
+    const{data:profiles}=await sb.from('profiles').select('username,avatar_url').in('username',uncached);
+    if(profiles)profiles.forEach(p=>{avatarCache[p.username]=p.avatar_url||null;});
+  }
   c.innerHTML=catches.map(x=>catchCardHTML(x)).join('');
   attachLikeHandlers();
 }
@@ -1383,8 +1396,8 @@ function setLogTab(tab){
   // Switch photo input to camera-only for tournament
   const photoInput=document.getElementById('f-photo');
   if(photoInput){
-    if(isTournTab)photoInput.setAttribute('capture','environment');
-    else photoInput.removeAttribute('capture');
+    if(isTournTab){photoInput.setAttribute('capture','environment');photoInput.setAttribute('accept','image/*;capture=camera');}
+    else{photoInput.removeAttribute('capture');photoInput.setAttribute('accept','image/*');}
   }
   const uploadLabel=document.getElementById('upload-label-text');
   if(uploadLabel)uploadLabel.textContent=isTournTab?'📷 Take Photo — camera only':'📷 Add Photo — gallery or camera';
@@ -1589,7 +1602,7 @@ function openEnterModal(tid,tname){
   document.getElementById('ai-verify-block').style.display='none';
   document.getElementById('et-photo-preview').style.display='none';
   document.getElementById('et-uploadZ').className='upload-z';
-  document.getElementById('et-uploadZ').innerHTML='<input type="file" id="et-photo" accept="image/*" capture="environment" onchange="handleEntryPhoto(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>📷 Take Photo — camera only';
+  document.getElementById('et-uploadZ').innerHTML='<input type="file" id="et-photo" accept="image/*;capture=camera" capture="environment" onchange="handleEntryPhoto(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>📷 Take Photo — camera only';
   ['et-sp','et-wt','et-len','et-meth'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('enterModal').classList.add('open');
 }
@@ -2027,25 +2040,69 @@ async function toggleEntries(tid,btn){
   if(!entries||entries.length===0){el.innerHTML='<p style="font-size:.8rem;color:var(--text3);font-weight:300">No entries yet.</p>';}
   else{
     el.innerHTML=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">Entries</div>`+
-    entries.map((e,i)=>`<div style="display:flex;align-items:center;gap:.75rem;padding:.45rem 0;border-bottom:1px solid var(--border)">
-      <div style="font-family:var(--font-d);font-size:.95rem;font-weight:800;color:var(--text3);width:20px">${i+1}</div>
-      ${e.photo_data?`<img src="data:image/jpeg;base64,${e.photo_data}" style="width:36px;height:36px;object-fit:cover;border-radius:var(--r);flex-shrink:0">`:'<div style="width:36px;height:36px;background:var(--bg3);border-radius:var(--r);flex-shrink:0"></div>'}
-      <div style="flex:1">
-        <div style="font-size:.82rem;color:var(--text);font-weight:500">@${e.username}</div>
-        <div style="font-size:.72rem;color:var(--text3);font-weight:300">${e.species||''}${e.length_cm?' · '+e.length_cm+'cm':''}${e.weight_kg?' · '+e.weight_kg+'kg':''} · ${e.verified?'✓ Verified':'Pending'}</div>
+    entries.map((e,i)=>`<div id="entry-row-${e.id}" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border)">
+      <div style="font-family:var(--font-d);font-size:.95rem;font-weight:800;color:var(--text3);width:20px;flex-shrink:0">${i+1}</div>
+      ${e.photo_data?`<img src="data:image/jpeg;base64,${e.photo_data}" style="width:44px;height:44px;object-fit:cover;border-radius:var(--r);flex-shrink:0;cursor:pointer" onclick="this.style.width=this.style.width==='44px'?'100%':'44px'">`:'<div style="width:44px;height:44px;background:var(--bg3);border-radius:var(--r);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--text3)">No photo</div>'}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.84rem;color:var(--text);font-weight:600">@${e.username}</div>
+        <div style="font-size:.72rem;color:var(--text2);font-weight:300;margin-top:1px">${e.species||'Unknown'}${e.length_cm?' · '+e.length_cm+'cm':''}${e.weight_kg?' · '+e.weight_kg+'kg':''}</div>
+        <div style="font-size:.68rem;margin-top:3px"><span style="background:${e.verified?'rgba(74,158,106,.1)':'rgba(212,136,42,.1)'};color:${e.verified?'#9fd4b1':'#f4c87a'};border:1px solid ${e.verified?'rgba(74,158,106,.2)':'rgba(212,136,42,.2)'};padding:1px 6px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.6rem">${e.verified?'✓ Verified':'Pending'}</span></div>
       </div>
-      <button class="btn-outline btn-sm btn-danger" onclick="deleteEntry('${e.id}','${tid}',this)" style="font-size:.7rem;flex-shrink:0">Remove</button>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+        ${!e.verified?`<button class="btn btn-sm btn-success" onclick="verifyEntry('${e.id}','${tid}',this)" style="font-size:.68rem;white-space:nowrap">✓ Verify</button>`:''}
+        <button class="btn-outline btn-sm" onclick="removeFromTournament('${e.id}','${tid}',this)" style="font-size:.68rem;white-space:nowrap;color:var(--amber);border-color:var(--amber)">Move to Feed</button>
+        <button class="btn-outline btn-sm btn-danger" onclick="deleteEntry('${e.id}','${tid}',this)" style="font-size:.68rem;white-space:nowrap">Delete</button>
+      </div>
     </div>`).join('');
   }
   el.style.display='block';
   btn.textContent='Entries ('+entries.length+') ▲';
 }
 
+async function verifyEntry(eid,tid,btn){
+  btn.disabled=true;btn.textContent='...';
+  await sb.from('tournament_entries').update({verified:true,verification_status:'approved'}).eq('id',eid);
+  const row=document.getElementById('entry-row-'+eid);
+  if(row){
+    // Update status badge
+    const badge=row.querySelector('span[style*="border-radius"]');
+    if(badge){badge.style.background='rgba(74,158,106,.1)';badge.style.color='#9fd4b1';badge.style.borderColor='rgba(74,158,106,.2)';badge.textContent='✓ Verified';}
+    btn.remove();
+  }
+  redistributePool();
+}
+
+async function removeFromTournament(eid,tid,btn){
+  btn.disabled=true;btn.textContent='Moving...';
+  // Get the entry data
+  const{data:entry}=await sb.from('tournament_entries').select('*').eq('id',eid).single();
+  if(entry){
+    // Add to catches feed if not already there
+    const uname=entry.username;
+    const{data:profile}=await sb.from('profiles').select('id').eq('username',uname).single();
+    if(profile){
+      await sb.from('catches').insert({
+        user_id:profile.id,username:uname,species:entry.species,
+        weight_kg:entry.weight_kg,length_cm:entry.length_cm,
+        photo_data:entry.photo_data,verified:true,
+        catch_lat:entry.gps_lat,catch_lng:entry.gps_lng,
+        photo_status:'approved',notes:'Moved from tournament'
+      });
+    }
+  }
+  // Delete from tournament
+  await sb.from('tournament_entries').delete().eq('id',eid);
+  const row=document.getElementById('entry-row-'+eid);
+  if(row){row.style.opacity='0';row.style.transition='opacity .3s';setTimeout(()=>row.remove(),300);}
+  const toggle=document.querySelector(`button[onclick*="toggleEntries('${tid}'"]`);
+  if(toggle){const m=toggle.textContent.match(/\d+/);if(m)toggle.textContent=`Entries (${Math.max(0,parseInt(m[0])-1)}) ▲`;}
+}
+
 async function deleteEntry(eid,tid,btn){
   btn.disabled=true;btn.textContent='...';
   await sb.from('tournament_entries').delete().eq('id',eid);
-  btn.closest('div[style*="border-bottom"]').remove();
-  // Update entry count in button
+  const row=document.getElementById('entry-row-'+eid);
+  if(row){row.style.opacity='0';row.style.transition='opacity .3s';setTimeout(()=>row.remove(),300);}
   const toggle=document.querySelector(`button[onclick*="toggleEntries('${tid}'"]`);
   if(toggle){const m=toggle.textContent.match(/\d+/);if(m)toggle.textContent=`Entries (${Math.max(0,parseInt(m[0])-1)}) ▲`;}
 }
@@ -2145,14 +2202,16 @@ async function loadSidebar(){
 // ===== CATCH CARD =====
 function catchCardHTML(c){
   const ago=timeAgo(c.created_at);
-  let badge='<span class="vbadge vb-ok"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>';
+  let badge='<span class="vbadge vb-ok"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>AI Verified</span>';
   if(c.tournament_entry){
     const vs=c.verification_status;
-    if(vs==='flagged'||vs==='pending'||(!c.verified&&!vs))badge='<span class="vbadge vb-pend"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>AI Review</span>';
+    if(vs==='flagged'||vs==='pending'||(!c.verified&&!vs))badge='<span class="vbadge vb-pend"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Pending</span>';
     else if(vs==='rejected')badge='<span class="vbadge vb-fail"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>';
   }
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
-  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head"><div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div></div>`;
+  const avUrl=avatarCache[c.username];
+  const avEl=avUrl?`<div class="av" onclick="loadProfile('${c.username||''}')" style="overflow:hidden;padding:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div>`;
+  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div></div>`;
 }
 
 function attachLikeHandlers(){
@@ -2189,7 +2248,27 @@ async function loadProfile(username){
   if(currentUser&&currentUser.id!==profile.id){const{data:f}=await sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single();isFollowing=!!f;}
   const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
   const initials=username.substring(0,2).toUpperCase();
-  document.getElementById('p-av').textContent=initials;
+  document.getElementById('p-av-text').textContent=initials;
+  document.getElementById('p-av').textContent='';
+  // Show avatar image if exists
+  const avImg=document.getElementById('p-av-img');
+  const avOverlay=document.getElementById('p-av-overlay');
+  if(profile.avatar_url){
+    avImg.src=profile.avatar_url;avImg.style.display='block';
+    document.getElementById('p-av-text').style.display='none';
+  } else {
+    avImg.style.display='none';
+    document.getElementById('p-av-text').style.display='flex';
+    document.getElementById('p-av-text').style.alignItems='center';
+    document.getElementById('p-av-text').style.justifyContent='center';
+    document.getElementById('p-av-text').style.width='100%';
+    document.getElementById('p-av-text').style.height='100%';
+  }
+  // Only show edit on own profile
+  const isOwnProfile=currentUser&&profile.id===currentUser.id;
+  if(avOverlay)avOverlay.style.display=isOwnProfile?'block':'none';
+  document.getElementById('p-av').onclick=isOwnProfile?triggerAvatarUpload:null;
+  document.getElementById('p-av').style.cursor=isOwnProfile?'pointer':'default';
   document.getElementById('p-username').textContent=username;
   _followProfileId=profile.id;
   document.getElementById('p-catches').textContent=profileCatches.length;
@@ -2277,6 +2356,51 @@ function shareProfile(){
   const url='https://strikr.vercel.app#/profile/'+profileUsername;
   if(navigator.share){navigator.share({title:profileUsername+' on Strikr',url});}
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+// ===== AVATAR =====
+function triggerAvatarUpload(){
+  document.getElementById('avatar-input').click();
+}
+
+async function handleAvatarUpload(input){
+  if(!input.files||!input.files[0])return;
+  const file=input.files[0];
+  if(file.size>10*1024*1024){alert('Photo too large — max 10MB');return;}
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    // Resize to 300x300 circle crop
+    const img=new Image();
+    img.onload=async()=>{
+      const SIZE=300;
+      const canvas=document.createElement('canvas');
+      canvas.width=SIZE;canvas.height=SIZE;
+      const ctx=canvas.getContext('2d');
+      // Square crop from centre
+      const min=Math.min(img.width,img.height);
+      const sx=(img.width-min)/2,sy=(img.height-min)/2;
+      ctx.drawImage(img,sx,sy,min,min,0,0,SIZE,SIZE);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+
+      // Save to profiles table as base64 data URL
+      const{error}=await sb.from('profiles').update({avatar_url:dataUrl}).eq('id',currentUser.id);
+      if(error){alert('Error saving avatar: '+error.message);return;}
+
+      // Update display immediately
+      document.getElementById('p-av-img').src=dataUrl;
+      document.getElementById('p-av-img').style.display='block';
+      document.getElementById('p-av-text').style.display='none';
+      showPhotoToast('✓ Profile photo updated!');
+
+      // Update nav avatar if shown
+      const navAv=document.getElementById('nav-av');
+      if(navAv){
+        navAv.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+      }
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 // ===== USER SEARCH =====
