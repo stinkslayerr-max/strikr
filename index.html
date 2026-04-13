@@ -1229,11 +1229,15 @@ async function handleSignup(){
   if(pw!==conf)return showAlert('su-alert','Passwords don\'t match.');
   if(!terms)return showAlert('su-alert','Please accept the Terms of Service.');
   setLoading('su-btn',true,'Create Free Account');
-  const{error}=await sb.auth.signUp({email,password:pw,options:{data:{username,gender,instagram:insta}}});
+  const{data:signupData,error}=await sb.auth.signUp({email,password:pw,options:{data:{username,gender,instagram:insta}}});
   setLoading('su-btn',false,'Create Free Account');
   if(error)return showAlert('su-alert',error.message);
-  document.getElementById('sent-to').textContent=email;
-  showPage('checkemail');
+  if(signupData?.session){
+    await doLogin(signupData.session.user);
+  } else {
+    document.getElementById('sent-to').textContent=email;
+    showPage('checkemail');
+  }
 }
 
 async function handleLogin(){
