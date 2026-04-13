@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Strikr</title>
+<meta name="theme-color" content="#e8621a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Strikr">
+<meta name="description" content="Log catches. Share sessions. Win prizes.">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -403,6 +410,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 @media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar{display:none}.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
 @media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
 
+/* INSTALL BANNER */
+.install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
+.install-banner.show{display:flex}
+.ib-icon{font-size:1.6rem;flex-shrink:0}
+.ib-text{flex:1}
+.ib-text strong{display:block;font-size:.86rem;color:var(--text);font-weight:500}
+.ib-text span{font-size:.75rem;color:var(--text2);font-weight:300}
+.ib-close{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:.25rem;flex-shrink:0}
+
 /* FLOATING LOG BUTTON */
 .fab{position:fixed;bottom:5rem;right:1.25rem;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--orange);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 3px 16px rgba(232,98,26,.45);display:none;align-items:center;justify-content:center;transition:background .15s}
 .fab:hover{background:var(--orange2)}
@@ -488,19 +504,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <div class="hero-accent"></div>
     <div class="hero-line"></div>
     <div class="hc">
-      <div class="hero-eyebrow">The fishing social network</div>
+      <div class="hero-eyebrow">Log. Catch. Win.</div>
       <h1>STRIK<span>R</span></h1>
       <div class="hero-rule"></div>
-      <p class="hero-sub">Log every catch. Share every session. Compete in community-funded tournaments where the prize pool is real — and fully verifiable.</p>
+      <p class="hero-sub">Australia's fishing social network. Log every catch, share every session, compete for real prizes. Free for everyone right now — join before it fills up.</p>
       <div class="hero-ctas">
         <button class="btn" style="padding:.7rem 2.2rem;font-size:.88rem" onclick="showPage('auth');switchTab('signup')">Get Started Free</button>
         <button class="btn-outline" style="padding:.7rem 2.2rem;font-size:.88rem" onclick="showPage('auth');switchTab('login')">Log In</button>
       </div>
       <div class="hero-stats">
-        <div class="hs-item"><div class="hs-n">Free</div><div class="hs-l">to log catches</div></div>
-        <div class="hs-item"><div class="hs-n">AI</div><div class="hs-l">catch verification</div></div>
-        <div class="hs-item"><div class="hs-n">GPS</div><div class="hs-l">waterway check</div></div>
-        <div class="hs-item"><div class="hs-n">60/30/10</div><div class="hs-l">prize split</div></div>
+        <div class="hs-item"><div class="hs-n">Free</div><div class="hs-l">for everyone now</div></div>
+        <div class="hs-item"><div class="hs-n">21</div><div class="hs-l">day opening comp</div></div>
+        <div class="hs-item"><div class="hs-n">100</div><div class="hs-l">founding member badges</div></div>
+        <div class="hs-item"><div class="hs-n">🏆</div><div class="hs-l">longest fish wins</div></div>
       </div>
     </div>
   </section>
@@ -617,7 +633,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <div class="auth-top"></div>
     <div class="auth-card">
       <div class="auth-logo"><div class="logo-dot"></div><span class="logo-text">Strikr</span></div>
-      <div class="auth-tag">Log · Share · Win</div>
+      <div class="auth-tag">Log. Catch. Win.</div>
       <div class="auth-tabs">
         <button class="at-btn active" onclick="switchTab('signup')">Sign Up</button>
         <button class="at-btn" onclick="switchTab('login')">Log In</button>
@@ -626,6 +642,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <div class="alert alert-err" id="su-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="su-alert-msg"></span></div>
         <div class="fg"><label>Username</label><input type="text" id="su-user" placeholder="@yourhandle" autocomplete="off"></div>
         <div class="fg"><label>Email</label><input type="email" id="su-email" placeholder="you@email.com" autocomplete="email"></div>
+        <div class="fg"><label>Instagram Handle <span style="color:var(--text3);font-weight:300;text-transform:none;letter-spacing:0">(optional)</span></label><input type="text" id="su-insta" placeholder="@yourinstagram" autocomplete="off"></div>
+        <div class="fg"><label>Gender</label>
+          <select id="su-gender" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.62rem .82rem;font-size:.86rem;border-radius:var(--r);outline:none;width:100%">
+            <option value="">Prefer not to say</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
         <div class="fg"><label>Password</label>
           <div class="pw-wrap"><input type="password" id="su-pw" placeholder="Min 8 characters" oninput="checkStr()" autocomplete="new-password"><button class="pw-eye" onclick="toggleEye('su-pw')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
           <div class="str-bar"><div class="str-seg" id="s1"></div><div class="str-seg" id="s2"></div><div class="str-seg" id="s3"></div><div class="str-seg" id="s4"></div></div>
@@ -684,11 +709,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <li id="admin-nav-item" style="display:none"><a onclick="showPanel('admin');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Manage</a></li>
         <li id="mod-nav-item" style="display:none"><a onclick="showPanel('modqueue');setNav(this)" id="mod-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Mod Review <span id="mod-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
       </ul>
-      <div class="pro-nudge">
-        <h5>Go Pro</h5>
-        <p>Enter tournaments & unlock analytics</p>
-        <button class="btn btn-sm btn-full" onclick="goPro.call(this)">Upgrade — $5/mo</button>
-      </div>
+
     </aside>
 
     <main class="main">
@@ -1070,13 +1091,15 @@ async function handleSignup(){
   const pw=document.getElementById('su-pw').value;
   const conf=document.getElementById('su-conf').value;
   const terms=document.getElementById('su-terms').checked;
+  const gender=document.getElementById('su-gender').value||null;
+  const insta=document.getElementById('su-insta').value.trim().replace('@','')||null;
   if(!username||!/^[a-zA-Z0-9_]{3,20}$/.test(username))return showAlert('su-alert','Valid username required (3–20 chars, letters/numbers/underscore).');
   if(!email||!email.includes('@'))return showAlert('su-alert','Valid email required.');
   if(pw.length<8)return showAlert('su-alert','Password must be at least 8 characters.');
   if(pw!==conf)return showAlert('su-alert','Passwords don\'t match.');
   if(!terms)return showAlert('su-alert','Please accept the Terms of Service.');
   setLoading('su-btn',true,'Create Free Account');
-  const{error}=await sb.auth.signUp({email,password:pw,options:{data:{username}}});
+  const{error}=await sb.auth.signUp({email,password:pw,options:{data:{username,gender,instagram:insta}}});
   setLoading('su-btn',false,'Create Free Account');
   if(error)return showAlert('su-alert',error.message);
   document.getElementById('sent-to').textContent=email;
@@ -1115,30 +1138,17 @@ async function goPro(){
   btn.disabled=false;btn.innerHTML=orig;
 }
 
-var isUserPro=false;
+var isUserPro=true; // FREE MODE — all features unlocked for everyone
 
 async function checkProStatus(){
-  if(!currentUser)return;
-  const{data}=await sb.from('profiles').select('is_pro').eq('id',currentUser.id).single();
-  isUserPro=data?.is_pro||false;
-  if(isUserPro){
-    document.querySelectorAll('.pro-nudge').forEach(el=>el.style.display='none');
-    document.getElementById('pro-gate').style.display='none';
-    document.getElementById('pro-badge').style.display='none';
-    document.getElementById('tournContainer').style.display='block';
-    const pill=document.getElementById('nav-uname');
-    if(pill&&!pill.querySelector('.pro-pill')){
-      const badge=document.createElement('span');
-      badge.className='pro-pill';
-      badge.style.cssText='background:var(--orange);color:#fff;font-size:.55rem;padding:1px 6px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle;margin-left:4px';
-      badge.textContent='PRO';
-      pill.appendChild(badge);
-    }
-  }else{
-    document.getElementById('pro-gate').style.display='block';
-    document.getElementById('pro-badge').style.display='inline';
-    document.getElementById('tournContainer').style.display='none';
-  }
+  // FREE MODE: all users get full access
+  isUserPro=true;
+  const proGate=document.getElementById('pro-gate');if(proGate)proGate.style.display='none';
+  const proBadge=document.getElementById('pro-badge');if(proBadge)proBadge.style.display='none';
+  const tournContainer=document.getElementById('tournContainer');if(tournContainer)tournContainer.style.display='block';
+  document.querySelectorAll('.pro-nudge').forEach(el=>el.style.display='none');
+  const mapGate=document.getElementById('map-pro-gate');if(mapGate)mapGate.style.display='none';
+  const mapContainer=document.getElementById('map-container');if(mapContainer)mapContainer.style.display='flex';
 }
 
 // Check URL for Stripe redirect
@@ -2026,6 +2036,12 @@ async function loadProfile(username){
   const initials=username.substring(0,2).toUpperCase();
   document.getElementById('p-av').textContent=initials;
   document.getElementById('p-username').textContent=username;
+  // Instagram handle
+  const instaHandle=profile.instagram||currentUser?.user_metadata?.instagram;
+  let instaEl=document.getElementById('p-insta');
+  if(!instaEl){instaEl=document.createElement('a');instaEl.id='p-insta';instaEl.style.cssText='font-size:.78rem;color:var(--orange);font-weight:400;display:block;margin-top:3px;text-decoration:none';document.querySelector('.profile-username').after(instaEl);}
+  if(instaHandle){instaEl.textContent='@'+instaHandle;instaEl.href='https://instagram.com/'+instaHandle;instaEl.target='_blank';}
+  else instaEl.textContent='';
   document.getElementById('p-catches').textContent=profileCatches.length;
   document.getElementById('p-followers').textContent=followerCount||0;
   document.getElementById('p-following').textContent=followingCount||0;
@@ -2126,6 +2142,7 @@ const BADGES=[
   {id:'social',icon:'👥',name:'Social',desc:'Get 10 followers',check:async(u)=>{const{count}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',u.id);return count>=10;},progress:async(u)=>{const{count}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',u.id);return{val:Math.min(count||0,10),max:10};}},
   {id:'pro',icon:'💎',name:'Pro Angler',desc:'Upgrade to Pro',check:async(u)=>{const{data}=await sb.from('profiles').select('is_pro').eq('id',u.id).single();return data?.is_pro;},progress:async(u)=>{const{data}=await sb.from('profiles').select('is_pro').eq('id',u.id).single();return{val:data?.is_pro?1:0,max:1};}},
   {id:'early_adopter',icon:'⭐',name:'Early Adopter',desc:'One of the first 100 anglers on Strikr',check:async(u,catches,allUsers)=>allUsers<=100,progress:async()=>({val:1,max:1})},
+  {id:'founding_member',icon:'🥇',name:'Founding Member',desc:'Signed up in the first 100 — legend',check:async(u,catches,allUsers)=>{const{data}=await sb.from('profiles').select('signup_number').eq('id',u.id).single();return data?.signup_number&&data.signup_number<=100;},progress:async()=>({val:1,max:1})},
   {id:'globetrotter',icon:'🌏',name:'Globetrotter',desc:'Log catches in 3 different locations',check:async(u,catches)=>[...new Set(catches.map(c=>c.location).filter(Boolean))].length>=3,progress:(u,catches)=>({val:Math.min([...new Set(catches.map(c=>c.location).filter(Boolean))].length,3),max:3})},
 ];
 
@@ -2340,6 +2357,55 @@ function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='pass
 function checkStr(){const pw=document.getElementById('su-pw').value;const segs=['s1','s2','s3','s4'].map(id=>document.getElementById(id));let s=0;if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^a-zA-Z0-9]/.test(pw))s++;const cols=['','#b83a2e','#d4882a','#4a9e6a','#e8621a'];segs.forEach((seg,i)=>seg.style.background=i<s?cols[s]:'rgba(255,255,255,.06)');}
 function timeAgo(ts){const s=Math.floor((new Date()-new Date(ts))/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
 (function(){const now=new Date();const fmt=d=>d.toISOString().slice(0,16);const s=document.getElementById('ct-start');const e=document.getElementById('ct-end');if(s)s.value=fmt(now);if(e)e.value=fmt(new Date(now.getTime()+7*86400000));document.getElementById('ct-type').onchange=function(){if(e)e.value=fmt(new Date(now.getTime()+(this.value==='monthly'?30:7)*86400000));};})();
+
+// PWA Install prompt
+let deferredInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(!localStorage.getItem('install-dismissed')){
+    document.getElementById('install-banner').classList.add('show');
+    document.getElementById('install-instructions').textContent='Tap Install to add Strikr to your home screen';
+    document.getElementById('install-btn').onclick=async()=>{
+      deferredInstallPrompt.prompt();
+      const{outcome}=await deferredInstallPrompt.userChoice;
+      document.getElementById('install-banner').classList.remove('show');
+      deferredInstallPrompt=null;
+    };
+  }
+});
+
+// Show iOS instructions in Safari
+(function(){
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone=window.matchMedia('(display-mode: standalone)').matches;
+  const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if(isIOS&&!isInStandalone&&isSafari&&!localStorage.getItem('install-dismissed')){
+    setTimeout(()=>{
+      document.getElementById('install-banner').classList.add('show');
+      document.getElementById('install-instructions').textContent='Tap the Share button → Add to Home Screen';
+      document.getElementById('install-btn').style.display='none';
+    },3000);
+  }
+})();
+
+// Register service worker for PWA
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').then(()=>console.log('SW registered')).catch(()=>{});
+  });
+}
 </script>
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="install-banner">
+  <div class="ib-icon">🎣</div>
+  <div class="ib-text">
+    <strong>Add Strikr to your Home Screen</strong>
+    <span id="install-instructions">Tap the menu → Add to Home Screen</span>
+  </div>
+  <button class="btn btn-sm" id="install-btn" style="flex-shrink:0">Install</button>
+  <button class="ib-close" onclick="document.getElementById('install-banner').classList.remove('show');localStorage.setItem('install-dismissed','1')">✕</button>
+</div>
+
 </body>
 </html>
