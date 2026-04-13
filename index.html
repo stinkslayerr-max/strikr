@@ -975,25 +975,40 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 <div class="modal-ov" id="logModal">
   <div class="modal" style="max-width:500px">
     <button class="modal-x" onclick="closeModal()">✕</button>
-    <h3>Log a Catch</h3>
+
+    <!-- Mode tabs -->
+    <div style="display:flex;gap:0;margin-bottom:1.25rem;background:var(--bg3);border-radius:var(--r);padding:3px">
+      <button id="log-tab-catch" onclick="setLogTab('catch')" style="flex:1;padding:.5rem;font-family:var(--font-d);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:var(--r);cursor:pointer;background:var(--orange);color:#fff;transition:all .15s">Log Catch</button>
+      <button id="log-tab-tourn" onclick="setLogTab('tourn')" style="flex:1;padding:.5rem;font-family:var(--font-d);font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;border-radius:var(--r);cursor:pointer;background:transparent;color:var(--text2);transition:all .15s">+ Enter Tournament</button>
+    </div>
+
     <div class="alert alert-err" id="log-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="log-err-msg"></span></div>
 
-    <!-- Photo required - must be first -->
+    <!-- Photo -->
     <div class="fg" style="margin-bottom:.85rem">
       <label>Photo <span style="color:var(--orange)">*Required</span></label>
       <label class="upload-z" id="uploadZ" style="margin-top:4px">
         <input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-        Add Photo — Tap or Click
+        <span id="upload-label-text">Add Photo — Tap or Click</span>
       </label>
       <div id="f-photo-preview" style="display:none;margin-top:6px"><img id="f-preview-img" src="" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--r);border:1px solid var(--border2)"></div>
+    </div>
+
+    <!-- Tournament selector — shown in tournament tab only -->
+    <div id="log-tourn-select" style="display:none;margin-bottom:.85rem">
+      <label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px">Tournament</label>
+      <select id="f-tourn-id" style="background:var(--bg);border:1px solid var(--orange-b);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%">
+        <option value="">Loading tournaments...</option>
+      </select>
+      <div style="font-size:.72rem;color:var(--text3);margin-top:5px;font-weight:300">📷 Tournament photo must show fish on a ruler — camera will open automatically</div>
     </div>
 
     <div class="f-grid">
       <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
       <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
       <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
-      <div class="ff"><label>Length (cm)</label><input type="number" id="f-len" placeholder="0" min="0"></div>
+      <div class="ff"><label>Length (cm) <span id="len-required" style="color:var(--orange);display:none">*</span></label><input type="number" id="f-len" placeholder="0" min="0"></div>
       <div class="ff"><label>Method</label><select id="f-meth"><option value="">Select...</option><option>Surface lure</option><option>Soft plastic</option><option>Live bait</option><option>Dead bait</option><option>Fly</option><option>Jigging</option><option>Other</option></select></div>
       <div class="ff"><label>Tide</label><select id="f-tide"><option value="">Select...</option><option>Incoming</option><option>Outgoing</option><option>High slack</option><option>Low slack</option></select></div>
       <div class="ff f-full"><label>Notes</label><textarea id="f-notes" placeholder="Technique, bait, conditions..." style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%;resize:vertical;min-height:52px"></textarea></div>
@@ -1003,13 +1018,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
           <span id="gps-catch-label">Pin Location</span>
         </button>
-        <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-release" style="accent-color:var(--green)"> Release only</label>
       </div>
-      <div class="tourn-note f-full" id="tourn-note" style="display:none">Tournament entry: photo must show fish on measurement board with ruler clearly visible.</div>
     </div>
 
     <button class="btn btn-full" id="post-btn" onclick="submitCatch()" style="margin-top:1rem">Post Catch</button>
-    <p style="font-family:var(--font-d);font-size:.63rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);text-align:center;margin-top:.65rem">Photo required · AI moderation runs on every upload</p>
+    <p style="font-family:var(--font-d);font-size:.63rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);text-align:center;margin-top:.65rem">Photo required · AI moderation on every upload</p>
   </div>
 </div>
 
@@ -1245,9 +1258,34 @@ async function loadMyCatches(){
 }
 
 // ===== SUBMIT CATCH (social feed) =====
+var logTab='catch';
+
+function setLogTab(tab){
+  logTab=tab;
+  const isTournTab=tab==='tourn';
+  document.getElementById('log-tab-catch').style.background=isTournTab?'transparent':'var(--orange)';
+  document.getElementById('log-tab-catch').style.color=isTournTab?'var(--text2)':'#fff';
+  document.getElementById('log-tab-tourn').style.background=isTournTab?'var(--orange)':'transparent';
+  document.getElementById('log-tab-tourn').style.color=isTournTab?'#fff':'var(--text2)';
+  document.getElementById('log-tourn-select').style.display=isTournTab?'block':'none';
+  document.getElementById('len-required').style.display=isTournTab?'inline':'none';
+  document.getElementById('post-btn').textContent=isTournTab?'Post Catch + Enter Tournament':'Post Catch';
+  // Switch photo input to camera-only for tournament
+  const photoInput=document.getElementById('f-photo');
+  if(photoInput){
+    if(isTournTab)photoInput.setAttribute('capture','environment');
+    else photoInput.removeAttribute('capture');
+  }
+  const uploadLabel=document.getElementById('upload-label-text');
+  if(uploadLabel)uploadLabel.textContent=isTournTab?'📷 Take Photo — camera only':'Add Photo — Tap or Click';
+}
+
 function openLogModal(){
   if(!currentUser){showPage('auth');return;}
   hideAlert('log-err');
+  logTab='catch';
+  // Reset tabs
+  setLogTab('catch');
   // Reset form
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes','f-lat','f-lng'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
@@ -1256,9 +1294,22 @@ function openLogModal(){
   document.getElementById('f-photo-preview').style.display='none';
   const z=document.getElementById('uploadZ');
   z.classList.remove('has-photo');
-  z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Add Photo — Tap or Click';
+  z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span id="upload-label-text">Add Photo — Tap or Click</span>';
   const lbl=document.getElementById('gps-catch-label');if(lbl)lbl.textContent='Pin Location';
+  // Load active tournaments into selector
+  loadActiveTournamentsForSelect();
   document.getElementById('logModal').classList.add('open');
+}
+
+async function loadActiveTournamentsForSelect(){
+  const sel=document.getElementById('f-tourn-id');
+  sel.innerHTML='<option value="">Loading...</option>';
+  const{data:tourns}=await sb.from('tournaments').select('id,name,metric,species').eq('status','active');
+  if(!tourns||tourns.length===0){
+    sel.innerHTML='<option value="">No active tournaments</option>';
+    return;
+  }
+  sel.innerHTML=tourns.map(t=>`<option value="${t.id}">${t.name} — ${t.metric==='length'?'Longest':'Heaviest'} ${t.species||'fish'}</option>`).join('');
 }
 
 function handlePhotoSelect(input){
@@ -1386,6 +1437,29 @@ async function submitCatch(){
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
   const preview=document.getElementById('f-photo-preview');if(preview)preview.style.display='none';
+
+  // If tournament tab — also submit as tournament entry
+  if(logTab==='tourn'){
+    const tid=document.getElementById('f-tourn-id').value;
+    if(tid&&sp&&catchPhotoBase64){
+      await sb.from('tournament_entries').insert({
+        tournament_id:tid,
+        user_id:currentUser.id,
+        username:uname,
+        species:sp,
+        weight_kg:wt,
+        length_cm:len,
+        method:meth||null,
+        verified:false,
+        verification_status:'pending',
+        photo_data:catchPhotoBase64,
+        gps_lat:catchLat,
+        gps_lng:catchLng
+      });
+      redistributePool();
+    }
+  }
+
   closeModal();
   attachLikeHandlers();loadSidebar();checkAndAwardBadges();
 }
