@@ -727,6 +727,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <!-- FEED -->
       <div id="panel-feed" class="panel active">
         <div class="panel-hdr"><h2>Feed</h2><button class="btn btn-sm" onclick="openLogModal()">+ Log Catch</button></div>
+        <!-- Search bar -->
+        <div style="position:relative;margin-bottom:.85rem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="user-search" placeholder="Search anglers..." onkeyup="handleUserSearch(this.value)" style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:.55rem .75rem .55rem 2.25rem;font-size:.84rem;border-radius:var(--r);outline:none">
+          <div id="search-results" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);z-index:50;margin-top:3px;box-shadow:0 4px 20px rgba(0,0,0,.4);max-height:280px;overflow-y:auto"></div>
+        </div>
         <div class="feed-tabs">
           <button class="f-tab active" onclick="setFeedTab('all',this)">All Catches</button>
           <button class="f-tab" onclick="setFeedTab('following',this)">Following</button>
@@ -910,8 +916,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
             </div>
             <div class="profile-counts">
               <div class="pc-item"><strong id="p-catches">0</strong><span>Catches</span></div>
-              <div class="pc-item"><strong id="p-followers">0</strong><span>Followers</span></div>
-              <div class="pc-item"><strong id="p-following">0</strong><span>Following</span></div>
+              <div class="pc-item" onclick="showFollowList('followers')" style="cursor:pointer"><strong id="p-followers">0</strong><span>Followers</span></div>
+              <div class="pc-item" onclick="showFollowList('following')" style="cursor:pointer"><strong id="p-following">0</strong><span>Following</span></div>
             </div>
           </div>
           <div class="profile-actions">
@@ -980,6 +986,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <button class="btn-outline btn-full" onclick="closeModal()">Cancel</button>
       <button class="btn btn-full" onclick="saveEditTournament()">Save Changes</button>
     </div>
+  </div>
+</div>
+
+<!-- FOLLOW LIST MODAL -->
+<div class="modal-ov" id="followListModal">
+  <div class="modal" style="max-width:360px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3 id="follow-list-title">Followers</h3>
+    <div id="follow-list-content" style="margin-top:.85rem;max-height:400px;overflow-y:auto"><div class="spin-lg"></div></div>
   </div>
 </div>
 
@@ -2176,6 +2191,7 @@ async function loadProfile(username){
   const initials=username.substring(0,2).toUpperCase();
   document.getElementById('p-av').textContent=initials;
   document.getElementById('p-username').textContent=username;
+  _followProfileId=profile.id;
   document.getElementById('p-catches').textContent=profileCatches.length;
   document.getElementById('p-followers').textContent=followerCount||0;
   document.getElementById('p-following').textContent=followingCount||0;
@@ -2263,7 +2279,62 @@ function shareProfile(){
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
 }
 
-// ===== BADGE SYSTEM =====
+// ===== USER SEARCH =====
+var searchTimeout=null;
+function handleUserSearch(val){
+  const results=document.getElementById('search-results');
+  clearTimeout(searchTimeout);
+  if(!val.trim()){results.style.display='none';return;}
+  searchTimeout=setTimeout(async()=>{
+    const{data:users}=await sb.from('profiles').select('username,id').ilike('username','%'+val.trim()+'%').limit(8);
+    if(!users||users.length===0){results.style.display='none';return;}
+    results.innerHTML=users.map(u=>`
+      <div onclick="loadProfile('${u.username}');document.getElementById('user-search').value='';document.getElementById('search-results').style.display='none';" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--orange);flex-shrink:0">${u.username.substring(0,2).toUpperCase()}</div>
+        <div style="font-size:.84rem;font-weight:500;color:var(--text)">@${u.username}</div>
+      </div>`).join('');
+    results.style.display='block';
+  },300);
+}
+
+// Close search on click outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#user-search')&&!e.target.closest('#search-results')){
+    const r=document.getElementById('search-results');if(r)r.style.display='none';
+  }
+});
+
+// ===== FOLLOW LISTS =====
+var _followProfileId=null;
+function showFollowList(type){
+  if(!_followProfileId)return;
+  document.getElementById('follow-list-title').textContent=type==='followers'?'Followers':'Following';
+  document.getElementById('follow-list-content').innerHTML='<div class="spin-lg"></div>';
+  document.getElementById('followListModal').classList.add('open');
+  loadFollowList(type);
+}
+
+async function loadFollowList(type){
+  const el=document.getElementById('follow-list-content');
+  let query;
+  if(type==='followers'){
+    query=await sb.from('follows').select('follower_id,profiles!follows_follower_id_fkey(username)').eq('following_id',_followProfileId);
+  } else {
+    query=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(username)').eq('follower_id',_followProfileId);
+  }
+  const{data}=query;
+  if(!data||data.length===0){el.innerHTML='<p style="text-align:center;font-size:.84rem;color:var(--text3);padding:1.5rem 0;font-weight:300">No '+type+' yet.</p>';return;}
+  el.innerHTML=data.map(row=>{
+    const username=type==='followers'?row.profiles?.username:row.profiles?.username;
+    if(!username)return '';
+    return `<div onclick="closeModal();loadProfile('${username}')" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border);cursor:pointer">
+      <div style="width:36px;height:36px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--orange);flex-shrink:0">${username.substring(0,2).toUpperCase()}</div>
+      <div style="font-size:.86rem;font-weight:500;color:var(--text)">@${username}</div>
+    </div>`;
+  }).join('');
+}
+
+
 const BADGES=[
   {id:'first_cast',icon:'🎣',name:'First Cast',desc:'Log your first catch',check:async(u,catches)=>catches.length>=1,progress:(u,catches)=>({val:Math.min(catches.length,1),max:1})},
   {id:'on_the_map',icon:'📍',name:'On the Map',desc:'Log a catch with GPS location',check:async(u,catches)=>catches.some(c=>c.catch_lat),progress:(u,catches)=>({val:catches.filter(c=>c.catch_lat).length>0?1:0,max:1})},
