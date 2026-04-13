@@ -907,12 +907,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <div id="profile-content" style="display:none">
       <div class="profile-hero">
         <div class="profile-hero-inner">
-          <div class="profile-av" id="p-av" style="position:relative;cursor:pointer;overflow:hidden" onclick="triggerAvatarUpload()">
-            <span id="p-av-text">?</span>
-            <img id="p-av-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:50%">
-            <div id="p-av-overlay" style="display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);padding:4px 0;text-align:center;font-size:.55rem;color:#fff;font-weight:600;letter-spacing:.05em">EDIT</div>
-            <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">
-          </div>
+          <div class="profile-av" id="p-av">?</div>
           <div class="profile-meta">
             <div class="profile-username">
               <span id="p-username">username</span>
@@ -1150,7 +1145,6 @@ const sb=window.supabase.createClient(SURL,SKEY);
 var currentUser=null,currentFeedTab='all',activeTournId=null,activeTournName=null;
 var gpsLat=null,gpsLng=null,gpsVerified=false;
 var entryPhotoBase64=null,catchPhotoBase64=null;
-var avatarCache={}; // username -> avatar_url
 
 (async function(){
   const{data:{session}}=await sb.auth.getSession();
@@ -1351,13 +1345,6 @@ async function loadFeed(tab){
   }
   const{data:catches,error}=await q;
   if(error||!catches||catches.length===0){c.innerHTML=error?'<div class="empty-state"><p>Could not load feed.</p></div>':'<div class="empty-state"><p>No catches yet — be the first to log one!</p></div>';return;}
-  // Pre-fetch avatars for users in this batch
-  const usernames=[...new Set(catches.map(x=>x.username).filter(Boolean))];
-  const uncached=usernames.filter(u=>!avatarCache[u]);
-  if(uncached.length>0){
-    const{data:profiles}=await sb.from('profiles').select('username,avatar_url').in('username',uncached);
-    if(profiles)profiles.forEach(p=>{avatarCache[p.username]=p.avatar_url||null;});
-  }
   c.innerHTML=catches.map(x=>catchCardHTML(x)).join('');
   attachLikeHandlers();
 }
@@ -2161,13 +2148,11 @@ function catchCardHTML(c){
   let badge='<span class="vbadge vb-ok"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>';
   if(c.tournament_entry){
     const vs=c.verification_status;
-    if(vs==='flagged'||vs==='pending'||(!c.verified&&!vs))badge='<span class="vbadge vb-pend"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Pending</span>';
+    if(vs==='flagged'||vs==='pending'||(!c.verified&&!vs))badge='<span class="vbadge vb-pend"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>AI Review</span>';
     else if(vs==='rejected')badge='<span class="vbadge vb-fail"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>';
   }
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
-  const avUrl=avatarCache[c.username];
-  const avEl=avUrl?`<div class="av" onclick="loadProfile('${c.username||''}')" style="overflow:hidden;padding:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div>`;
-  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div></div>`;
+  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head"><div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div></div>`;
 }
 
 function attachLikeHandlers(){
@@ -2204,27 +2189,7 @@ async function loadProfile(username){
   if(currentUser&&currentUser.id!==profile.id){const{data:f}=await sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single();isFollowing=!!f;}
   const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
   const initials=username.substring(0,2).toUpperCase();
-  document.getElementById('p-av-text').textContent=initials;
-  document.getElementById('p-av').textContent='';
-  // Show avatar image if exists
-  const avImg=document.getElementById('p-av-img');
-  const avOverlay=document.getElementById('p-av-overlay');
-  if(profile.avatar_url){
-    avImg.src=profile.avatar_url;avImg.style.display='block';
-    document.getElementById('p-av-text').style.display='none';
-  } else {
-    avImg.style.display='none';
-    document.getElementById('p-av-text').style.display='flex';
-    document.getElementById('p-av-text').style.alignItems='center';
-    document.getElementById('p-av-text').style.justifyContent='center';
-    document.getElementById('p-av-text').style.width='100%';
-    document.getElementById('p-av-text').style.height='100%';
-  }
-  // Only show edit on own profile
-  const isOwnProfile=currentUser&&profile.id===currentUser.id;
-  if(avOverlay)avOverlay.style.display=isOwnProfile?'block':'none';
-  document.getElementById('p-av').onclick=isOwnProfile?triggerAvatarUpload:null;
-  document.getElementById('p-av').style.cursor=isOwnProfile?'pointer':'default';
+  document.getElementById('p-av').textContent=initials;
   document.getElementById('p-username').textContent=username;
   _followProfileId=profile.id;
   document.getElementById('p-catches').textContent=profileCatches.length;
@@ -2312,51 +2277,6 @@ function shareProfile(){
   const url='https://strikr.vercel.app#/profile/'+profileUsername;
   if(navigator.share){navigator.share({title:profileUsername+' on Strikr',url});}
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
-}
-
-// ===== AVATAR =====
-function triggerAvatarUpload(){
-  document.getElementById('avatar-input').click();
-}
-
-async function handleAvatarUpload(input){
-  if(!input.files||!input.files[0])return;
-  const file=input.files[0];
-  if(file.size>10*1024*1024){alert('Photo too large — max 10MB');return;}
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    // Resize to 300x300 circle crop
-    const img=new Image();
-    img.onload=async()=>{
-      const SIZE=300;
-      const canvas=document.createElement('canvas');
-      canvas.width=SIZE;canvas.height=SIZE;
-      const ctx=canvas.getContext('2d');
-      // Square crop from centre
-      const min=Math.min(img.width,img.height);
-      const sx=(img.width-min)/2,sy=(img.height-min)/2;
-      ctx.drawImage(img,sx,sy,min,min,0,0,SIZE,SIZE);
-      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
-
-      // Save to profiles table as base64 data URL
-      const{error}=await sb.from('profiles').update({avatar_url:dataUrl}).eq('id',currentUser.id);
-      if(error){alert('Error saving avatar: '+error.message);return;}
-
-      // Update display immediately
-      document.getElementById('p-av-img').src=dataUrl;
-      document.getElementById('p-av-img').style.display='block';
-      document.getElementById('p-av-text').style.display='none';
-      showPhotoToast('✓ Profile photo updated!');
-
-      // Update nav avatar if shown
-      const navAv=document.getElementById('nav-av');
-      if(navAv){
-        navAv.innerHTML=`<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-      }
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
 }
 
 // ===== USER SEARCH =====
