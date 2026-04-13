@@ -642,7 +642,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <div class="alert alert-err" id="su-alert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="su-alert-msg"></span></div>
         <div class="fg"><label>Username</label><input type="text" id="su-user" placeholder="@yourhandle" autocomplete="off"></div>
         <div class="fg"><label>Email</label><input type="email" id="su-email" placeholder="you@email.com" autocomplete="email"></div>
-        <div class="fg"><label>Instagram Handle <span style="color:var(--text3);font-weight:300;text-transform:none;letter-spacing:0">(optional)</span></label><input type="text" id="su-insta" placeholder="@yourinstagram" autocomplete="off"></div>
         <div class="fg"><label>Gender</label>
           <select id="su-gender" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.62rem .82rem;font-size:.86rem;border-radius:var(--r);outline:none;width:100%">
             <option value="">Prefer not to say</option>
@@ -746,28 +745,34 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 
       <!-- ADMIN -->
       <div id="panel-admin" class="panel">
-        <div class="admin-wrap">
-          <div class="panel-hdr"><h2>Manage</h2></div>
-          <div class="admin-form">
-            <h3>Create Tournament</h3>
-            <div class="alert alert-err" id="ct-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="ct-err-msg"></span></div>
-            <div class="alert alert-ok" id="ct-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Tournament created!</span></div>
-            <div class="af-grid">
-              <div class="af-fg af-full"><label>Tournament Name</label><input type="text" id="ct-name" placeholder="e.g. Summer Kings"></div>
-              <div class="af-fg af-full"><label>Description</label><input type="text" id="ct-desc" placeholder="e.g. Heaviest kingfish takes the pot"></div>
-              <div class="af-fg"><label>Target Species</label><select id="ct-sp"><option value="">Any species</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option></select></div>
-              <div class="af-fg"><label>Metric</label><select id="ct-metric"><option value="weight">Heaviest fish</option><option value="length">Longest fish</option><option value="count">Most fish</option></select></div>
-              <div class="af-fg"><label>Prize Pool ($)</label><input type="number" id="ct-prize" placeholder="0" min="0"></div>
-              <div class="af-fg"><label>Type</label><select id="ct-type"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
-              <div class="af-fg"><label>Start Date</label><input type="datetime-local" id="ct-start"></div>
-              <div class="af-fg"><label>End Date</label><input type="datetime-local" id="ct-end"></div>
+        <div style="max-width:800px">
+          <div class="panel-hdr"><h2>Tournament Portal</h2><button class="btn btn-sm" onclick="document.getElementById('ct-form').style.display=document.getElementById('ct-form').style.display==='none'?'block':'none'">+ New Tournament</button></div>
+
+          <!-- Create form — hidden by default -->
+          <div id="ct-form" style="display:none">
+            <div class="admin-form">
+              <h3>Create Tournament</h3>
+              <div class="alert alert-err" id="ct-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg><span id="ct-err-msg"></span></div>
+              <div class="alert alert-ok" id="ct-ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><span>Tournament created!</span></div>
+              <div class="af-grid">
+                <div class="af-fg af-full"><label>Tournament Name</label><input type="text" id="ct-name" placeholder="e.g. Grand Opening — Longest Fish"></div>
+                <div class="af-fg af-full"><label>Description</label><input type="text" id="ct-desc" placeholder="e.g. Longest fish takes $100 — any species welcome"></div>
+                <div class="af-fg"><label>Target Species</label><select id="ct-sp"><option value="">Any species</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option></select></div>
+                <div class="af-fg"><label>Metric</label><select id="ct-metric"><option value="weight">Heaviest fish</option><option value="length">Longest fish</option><option value="count">Most fish</option></select></div>
+                <div class="af-fg"><label>Prize Pool ($)</label><input type="number" id="ct-prize" placeholder="100" min="0"></div>
+                <div class="af-fg"><label>Type</label><select id="ct-type"><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select></div>
+                <div class="af-fg"><label>Start Date</label><input type="datetime-local" id="ct-start"></div>
+                <div class="af-fg"><label>End Date</label><input type="datetime-local" id="ct-end"></div>
+              </div>
+              <div style="display:flex;gap:.65rem;margin-top:.85rem">
+                <button class="btn" id="ct-btn" onclick="createTournament()" style="padding:.52rem 1.3rem">Create Tournament</button>
+                <button class="btn-outline" onclick="document.getElementById('ct-form').style.display='none'" style="padding:.52rem 1.3rem">Cancel</button>
+              </div>
             </div>
-            <button class="btn" id="ct-btn" onclick="createTournament()" style="margin-top:.75rem;padding:.52rem 1.3rem">Create Tournament</button>
           </div>
-          <div>
-            <div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:.85rem">Existing Tournaments</div>
-            <div id="existingTourns"><div class="spin-lg"></div></div>
-          </div>
+
+          <!-- Tournament list -->
+          <div id="existingTourns"><div class="spin-lg"></div></div>
         </div>
       </div>
 
@@ -1900,8 +1905,38 @@ async function loadAdminTourns(){
   const c=document.getElementById('existingTourns');
   c.innerHTML='<div class="spin-lg"></div>';
   const{data:tourns}=await sb.from('tournaments').select('*').order('created_at',{ascending:false});
-  if(!tourns||tourns.length===0){c.innerHTML='<p style="font-size:.82rem;color:var(--text3);font-weight:300">No tournaments yet.</p>';return;}
-  c.innerHTML=`<div class="exist-list">${tourns.map(t=>`<div class="exist-card"><div class="status-dot ${t.status==='active'?'dot-active':'dot-ended'}"></div><div class="exist-info"><div class="exist-name">${t.name}</div><div class="exist-meta">$${Number(t.prize_pool).toLocaleString()} · ${t.type} · Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')} · ${t.status}</div></div><div style="display:flex;gap:.4rem">${t.created_by===currentUser?.id?`<button class="btn-outline btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End</button><button class="btn-outline btn-sm btn-danger" onclick="deleteTournament('${t.id}',this,'${t.name}')">Delete</button>`:''}${t.status==='active'?`<button class="btn-outline btn-sm" onclick="recalcPool(this)" style="font-size:.68rem">Recalc Pool</button>`:''}</div></div>`).join('')}</div>`;
+  if(!tourns||tourns.length===0){c.innerHTML='<div class="empty-state"><p>No tournaments yet. Hit + New Tournament to create one.</p></div>';return;}
+  const{data:entries}=await sb.from('tournament_entries').select('tournament_id');
+  const counts={};
+  tourns.forEach(t=>counts[t.id]=0);
+  if(entries)entries.forEach(e=>{if(counts[e.tournament_id]!==undefined)counts[e.tournament_id]++;});
+  c.innerHTML=tourns.map(t=>{
+    const isActive=t.status==='active';
+    const daysLeft=Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
+    const entryCount=counts[t.id]||0;
+    return `<div style="background:var(--bg2);border:1px solid ${isActive?'var(--orange-b)':'var(--border)'};border-left:3px solid ${isActive?'var(--orange)':'var(--text3)'};padding:1.25rem;border-radius:var(--r);margin-bottom:.75rem">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.35rem;flex-wrap:wrap">
+            <div style="font-family:var(--font-d);font-size:1.2rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">${t.name}</div>
+            <span style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:3px;${isActive?'background:rgba(74,158,106,.1);color:#9fd4b1;border:1px solid rgba(74,158,106,.2)':'background:var(--bg3);color:var(--text3);border:1px solid var(--border)'}">${isActive?'ACTIVE':'ENDED'}</span>
+          </div>
+          <div style="font-size:.8rem;color:var(--text2);font-weight:300;margin-bottom:.65rem">${t.description||''}</div>
+          <div style="display:flex;gap:1.5rem;flex-wrap:wrap">
+            <div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--orange)">$${Number(t.prize_pool).toLocaleString()}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Prize Pool</div></div>
+            <div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--text)">${entryCount}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Entries</div></div>
+            ${isActive?`<div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--text)">${daysLeft}d</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Remaining</div></div>`:''}
+            <div><div style="font-family:var(--font-d);font-size:.82rem;font-weight:600;color:var(--text2)">${t.metric==='weight'?'Heaviest':t.metric==='length'?'Longest':'Most'} · ${t.species||'Any species'}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')}</div></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.45rem;flex-shrink:0">
+          ${isActive?`<button class="btn btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End Tournament</button>`:''}
+          <button class="btn btn-sm btn-danger" onclick="deleteTournament('${t.id}',this,'${t.name}')">Delete</button>
+          ${isActive?`<button class="btn-outline btn-sm" onclick="recalcPool(this)" style="font-size:.7rem">Recalc Pool</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function createTournament(){
@@ -1922,8 +1957,8 @@ async function createTournament(){
   const{error}=await sb.from('tournaments').insert({name,description:desc,species:species||null,metric,prize_pool:prize,type,starts_at:start,ends_at:end,status:'active',created_by:currentUser.id});
   setLoading('ct-btn',false,'Create Tournament');
   if(error)return showAlert('ct-err',error.message);
-  document.getElementById('ct-ok').classList.add('show');
   ['ct-name','ct-desc','ct-prize','ct-start','ct-end'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ct-form').style.display='none';
   loadAdminTourns();loadSidebar();
 }
 
@@ -2036,12 +2071,6 @@ async function loadProfile(username){
   const initials=username.substring(0,2).toUpperCase();
   document.getElementById('p-av').textContent=initials;
   document.getElementById('p-username').textContent=username;
-  // Instagram handle
-  const instaHandle=profile.instagram||currentUser?.user_metadata?.instagram;
-  let instaEl=document.getElementById('p-insta');
-  if(!instaEl){instaEl=document.createElement('a');instaEl.id='p-insta';instaEl.style.cssText='font-size:.78rem;color:var(--orange);font-weight:400;display:block;margin-top:3px;text-decoration:none';document.querySelector('.profile-username').after(instaEl);}
-  if(instaHandle){instaEl.textContent='@'+instaHandle;instaEl.href='https://instagram.com/'+instaHandle;instaEl.target='_blank';}
-  else instaEl.textContent='';
   document.getElementById('p-catches').textContent=profileCatches.length;
   document.getElementById('p-followers').textContent=followerCount||0;
   document.getElementById('p-following').textContent=followingCount||0;
