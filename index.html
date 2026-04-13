@@ -400,8 +400,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .lb-close{position:absolute;top:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border2);color:var(--text);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem}
 
 @media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar{display:none}.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
+@media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
 
-/* BADGES */
+/* MOBILE NAV */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:100;background:var(--bg2);border-top:1px solid var(--border);padding:.5rem 0 calc(.5rem + env(safe-area-inset-bottom));justify-content:space-around}
+.mn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:.35rem .75rem;cursor:pointer;background:none;border:none;color:var(--text3);transition:color .15s;font-size:.58rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-family:var(--font-d)}
+.mn-item.active{color:var(--orange)}
+.mn-item svg{width:20px;height:20px}
+@media(max-width:900px){.mobile-nav{display:flex}.app-wrap{padding-bottom:60px}}
+
+
 .badge-card{background:var(--bg2);padding:1.35rem;display:flex;flex-direction:column;align-items:center;text-align:center;transition:background .2s;position:relative}
 .badge-card:hover{background:var(--bg3)}
 .badge-card.locked{opacity:.4;filter:grayscale(1)}
@@ -661,6 +670,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <ul class="s-nav">
         <li><a class="active" onclick="showPanel('feed');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Feed</a></li>
         <li><a onclick="showPanel('mycatches');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>My Catches</a></li>
+        <li><a onclick="viewMyProfile();setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>My Profile</a></li>
         <li><a onclick="showPanel('map');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Spot Map</a></li>
         <li><a onclick="showPanel('achievements');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Achievements <span id="badge-new-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
         <div class="s-sec">Compete</div>
@@ -821,6 +831,30 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <div class="widget"><div class="w-title">Trending Species</div><div id="sidebar-species" style="display:flex;flex-wrap:wrap;gap:5px"></div></div>
     </aside>
   </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav">
+    <button class="mn-item active" id="mn-feed" onclick="showPanel('feed');setMobileNav('feed')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Feed
+    </button>
+    <button class="mn-item" id="mn-map" onclick="showPanel('map');setMobileNav('map')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      Map
+    </button>
+    <button class="mn-item" id="mn-tournaments" onclick="showPanel('tournaments');setMobileNav('tournaments')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Compete
+    </button>
+    <button class="mn-item" id="mn-achievements" onclick="showPanel('achievements');setMobileNav('achievements')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>
+      Badges
+    </button>
+    <button class="mn-item" id="mn-profile" onclick="viewMyProfile();setMobileNav('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.58-7 8-7s8 3 8 7"/></svg>
+      Profile
+    </button>
+  </nav>
 </div>
 
 <!-- PROFILE PAGE -->
@@ -1977,6 +2011,16 @@ window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
 function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();}
+function viewMyProfile(){
+  if(!currentUser)return;
+  const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
+  loadProfile(uname);
+}
+function setMobileNav(tab){
+  document.querySelectorAll('.mn-item').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById('mn-'+tab);
+  if(el)el.classList.add('active');
+}
 function goHome(){showPage(currentUser?'app':'landing');}
 function updateNav(u){if(u){document.getElementById('nav-auth').style.display='none';document.getElementById('nav-user').style.display='flex';document.getElementById('nav-av').textContent=u.substring(0,2).toUpperCase();document.getElementById('nav-uname').textContent=u;}else{document.getElementById('nav-auth').style.display='flex';document.getElementById('nav-user').style.display='none';}}
 function setNav(el){document.querySelectorAll('.s-nav a').forEach(a=>a.classList.remove('active'));if(el)el.classList.add('active');}
