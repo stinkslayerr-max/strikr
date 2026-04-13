@@ -409,6 +409,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 @media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:900px){.app-wrap{grid-template-columns:1fr}.sidebar{display:none}.rsidebar{display:none}.tourn-hero{grid-template-columns:1fr}.prize-top{grid-template-columns:1fr}}
 @media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
+@media(max-width:900px){#page-profile{padding-bottom:70px}}
 
 /* INSTALL BANNER */
 .install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
@@ -670,6 +671,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
           <input type="checkbox" id="su-terms" style="accent-color:var(--orange);margin-top:3px;flex-shrink:0">
           <label for="su-terms" style="font-size:.76rem;color:var(--text2);cursor:pointer;line-height:1.55;font-weight:300">I agree to the <span style="color:var(--orange)">Terms</span> and <span style="color:var(--orange)">Privacy Policy</span></label>
         </div>
+        <div class="fg" style="margin-bottom:1rem"><label style="font-size:.72rem">Referral Code <span style="color:var(--text3);font-weight:300">(optional)</span></label><input type="text" id="su-ref" placeholder="Enter a referral code" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.55rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%;text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
         <button class="btn btn-full" id="su-btn" onclick="handleSignup()">Create Free Account</button>
         <p style="text-align:center;font-size:.76rem;color:var(--text2);margin-top:.9rem;font-weight:300">Already have an account? <span style="color:var(--orange);cursor:pointer;font-weight:500" onclick="switchTab('login')">Log in</span></p>
       </div>
@@ -718,6 +720,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <div class="s-sec" id="admin-sec" style="display:none">Admin</div>
         <li id="admin-nav-item" style="display:none"><a onclick="showPanel('admin');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Manage</a></li>
         <li id="catchmgr-nav-item" style="display:none"><a onclick="showPanel('catchmgr');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Manage Catches</a></li>
+        <li id="promoter-nav-item" style="display:none"><a onclick="showPanel('promoters');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Promoters</a></li>
         <li id="mod-nav-item" style="display:none"><a onclick="showPanel('modqueue');setNav(this)" id="mod-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Mod Review <span id="mod-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
       </ul>
 
@@ -795,6 +798,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
           <!-- Tournament list -->
           <div id="existingTourns"><div class="spin-lg"></div></div>
         </div>
+      </div>
+
+      <!-- PROMOTER PANEL (admin only) -->
+      <div id="panel-promoters" class="panel">
+        <div class="panel-hdr"><h2>Promoters</h2><button class="btn btn-sm" onclick="document.getElementById('new-promoter-form').style.display=document.getElementById('new-promoter-form').style.display==='none'?'block':'none'">+ Add Promoter</button></div>
+        <div id="new-promoter-form" style="display:none;background:var(--bg2);border:1px solid var(--border2);padding:1.25rem;border-radius:var(--r);margin-bottom:1.25rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-bottom:.85rem">
+            <div><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px">Name / Username</label><input type="text" id="promo-name" placeholder="e.g. SydneyFishing" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.55rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+            <div><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);display:block;margin-bottom:4px">Referrals needed for Pro</label><input type="number" id="promo-threshold" placeholder="10" min="1" value="10" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.55rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+          </div>
+          <button class="btn btn-sm" onclick="createPromoter()">Create Promoter Code</button>
+        </div>
+        <div id="promoter-list"><div class="spin-lg"></div></div>
       </div>
 
       <!-- CATCH MANAGER (admin only) -->
@@ -1242,6 +1258,7 @@ async function doLogin(user){
   document.getElementById('admin-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('mod-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('catchmgr-nav-item').style.display=isAdmin?'':'none';
+  document.getElementById('promoter-nav-item').style.display=isAdmin?'':'none';
 }
 
 // ===== AUTH =====
@@ -1254,6 +1271,7 @@ async function handleSignup(){
   const terms=document.getElementById('su-terms').checked;
   const gender=document.getElementById('su-gender')?.value||null;
   const insta=null;
+  const refCode=document.getElementById('su-ref')?.value.trim().toUpperCase()||null;
   if(!username||!/^[a-zA-Z0-9_]{3,20}$/.test(username))return showAlert('su-alert','Valid username required (3–20 chars, letters/numbers/underscore).');
   if(!email||!email.includes('@'))return showAlert('su-alert','Valid email required.');
   if(pw.length<8)return showAlert('su-alert','Password must be at least 8 characters.');
@@ -1264,6 +1282,10 @@ async function handleSignup(){
   setLoading('su-btn',false,'Create Free Account');
   if(error)return showAlert('su-alert',error.message);
   if(signupData?.session){
+    // Process referral code if provided
+    if(refCode){
+      processReferral(refCode,signupData.session.user.id).catch(()=>{});
+    }
     await doLogin(signupData.session.user);
   } else {
     document.getElementById('sent-to').textContent=email;
@@ -2235,6 +2257,8 @@ async function loadProfile(username){
   history.pushState(null,'','#/profile/'+username);
   showPage('profile');
   window.scrollTo(0,0);
+  document.body.scrollTop=0; // iOS Safari fix
+  document.documentElement.scrollTop=0;
   document.getElementById('profile-loading').style.display='block';
   document.getElementById('profile-content').style.display='none';
   document.getElementById('profile-not-found').style.display='none';
@@ -2656,7 +2680,86 @@ function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/prof
 window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
-function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();}
+function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();if(n==='promoters')loadPromoters();}
+
+// ===== PROMOTER SYSTEM =====
+function generateCode(name){
+  const clean=name.replace(/[^a-zA-Z0-9]/g,'').toUpperCase().substring(0,6);
+  const rand=Math.random().toString(36).substring(2,5).toUpperCase();
+  return clean+rand;
+}
+
+async function createPromoter(){
+  const name=document.getElementById('promo-name').value.trim();
+  const threshold=parseInt(document.getElementById('promo-threshold').value)||10;
+  if(!name)return;
+  const code=generateCode(name);
+  const{error}=await sb.from('promoters').insert({name,code,threshold,referral_count:0,is_pro:false});
+  if(error){alert('Error: '+error.message);return;}
+  document.getElementById('promo-name').value='';
+  document.getElementById('new-promoter-form').style.display='none';
+  loadPromoters();
+}
+
+async function loadPromoters(){
+  const el=document.getElementById('promoter-list');
+  el.innerHTML='<div class="spin-lg"></div>';
+  const{data:promoters}=await sb.from('promoters').select('*').order('created_at',{ascending:false});
+  if(!promoters||promoters.length===0){el.innerHTML='<div class="empty-state"><p>No promoters yet.</p></div>';return;}
+  el.innerHTML=promoters.map(p=>{
+    const pct=Math.min(100,Math.round((p.referral_count/p.threshold)*100));
+    const unlocked=p.referral_count>=p.threshold;
+    return `<div style="background:var(--bg2);border:1px solid ${unlocked?'var(--orange-b)':'var(--border)'};padding:1.1rem 1.25rem;border-radius:var(--r);margin-bottom:.65rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem">
+        <div>
+          <div style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">${p.name}</div>
+          <div style="display:flex;align-items:center;gap:.65rem;margin-top:.35rem;flex-wrap:wrap">
+            <span style="font-family:var(--font-d);font-size:.75rem;font-weight:700;letter-spacing:.12em;background:var(--bg3);padding:3px 10px;border-radius:3px;color:var(--orange);border:1px solid var(--orange-b)">${p.code}</span>
+            <span style="font-size:.76rem;color:var(--text2);font-weight:300">${p.referral_count} / ${p.threshold} referrals</span>
+            ${unlocked?'<span style="font-size:.68rem;background:rgba(74,158,106,.1);color:#9fd4b1;border:1px solid rgba(74,158,106,.2);padding:2px 8px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em">PRO UNLOCKED</span>':''}
+          </div>
+          <div style="margin-top:.55rem;background:var(--bg4);border-radius:2px;height:4px;overflow:hidden;max-width:240px">
+            <div style="height:100%;width:${pct}%;background:${unlocked?'var(--green)':'var(--orange)'};border-radius:2px;transition:width .4s"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="copyCode('${p.code}')" style="font-size:.72rem">Copy Code</button>
+          ${!unlocked?`<button class="btn btn-sm btn-success" onclick="manuallyGrantPro('${p.id}',this)" style="font-size:.72rem">Grant Pro</button>`:''}
+          <button class="btn-outline btn-sm btn-danger" onclick="deletePromoter('${p.id}',this)" style="font-size:.72rem">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function copyCode(code){
+  navigator.clipboard&&navigator.clipboard.writeText(code);
+  showPhotoToast('✓ Code copied: '+code);
+}
+
+async function manuallyGrantPro(pid,btn){
+  btn.disabled=true;btn.textContent='Granting...';
+  await sb.from('promoters').update({is_pro:true,referral_count:99}).eq('id',pid);
+  loadPromoters();
+}
+
+async function deletePromoter(pid,btn){
+  btn.disabled=true;btn.textContent='...';
+  await sb.from('promoters').delete().eq('id',pid);
+  btn.closest('div[style*="border-radius"]').remove();
+}
+
+async function processReferral(code,newUserId){
+  // Find promoter with this code
+  const{data:promoter}=await sb.from('promoters').select('*').eq('code',code).single();
+  if(!promoter)return;
+  // Log referral
+  await sb.from('referrals').insert({promoter_id:promoter.id,referred_user_id:newUserId,code});
+  // Increment count
+  const newCount=promoter.referral_count+1;
+  const unlocked=newCount>=promoter.threshold;
+  await sb.from('promoters').update({referral_count:newCount,is_pro:unlocked}).eq('id',promoter.id);
+}
 
 async function deleteMyCatch(id,btn){
   btn.disabled=true;btn.textContent='...';
