@@ -1436,7 +1436,7 @@ async function submitEntry(){
   if(aiResult.pass===true){
     document.getElementById('et-ok-msg').textContent='Entry verified and added to the leaderboard!';
     document.getElementById('et-ok').classList.add('show');
-    setTimeout(()=>{closeModal();loadTournaments();loadModCount();},2500);
+    setTimeout(()=>{closeModal();loadTournaments();loadModCount();redistributePool();},2500);
   }else if(aiResult.flag){
     document.getElementById('et-warn-msg').textContent='Entry submitted and queued for mod review. '+aiResult.reason;
     document.getElementById('et-warn').classList.add('show');
@@ -1643,7 +1643,7 @@ async function loadAdminTourns(){
   c.innerHTML='<div class="spin-lg"></div>';
   const{data:tourns}=await sb.from('tournaments').select('*').order('created_at',{ascending:false});
   if(!tourns||tourns.length===0){c.innerHTML='<p style="font-size:.82rem;color:var(--text3);font-weight:300">No tournaments yet.</p>';return;}
-  c.innerHTML=`<div class="exist-list">${tourns.map(t=>`<div class="exist-card"><div class="status-dot ${t.status==='active'?'dot-active':'dot-ended'}"></div><div class="exist-info"><div class="exist-name">${t.name}</div><div class="exist-meta">$${Number(t.prize_pool).toLocaleString()} · ${t.type} · Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')} · ${t.status}</div></div>${t.created_by===currentUser?.id?`<button class="btn-outline btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End</button>`:''}</div>`).join('')}</div>`;
+  c.innerHTML=`<div class="exist-list">${tourns.map(t=>`<div class="exist-card"><div class="status-dot ${t.status==='active'?'dot-active':'dot-ended'}"></div><div class="exist-info"><div class="exist-name">${t.name}</div><div class="exist-meta">$${Number(t.prize_pool).toLocaleString()} · ${t.type} · Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')} · ${t.status}</div></div><div style="display:flex;gap:.4rem">${t.created_by===currentUser?.id?`<button class="btn-outline btn-sm btn-danger" onclick="endTournament('${t.id}',this)">End</button><button class="btn-outline btn-sm btn-danger" onclick="deleteTournament('${t.id}',this,'${t.name}')">Delete</button>`:''}${t.status==='active'?`<button class="btn-outline btn-sm" onclick="recalcPool(this)" style="font-size:.68rem">Recalc Pool</button>`:''}</div></div>`).join('')}</div>`;
 }
 
 async function createTournament(){
@@ -1673,6 +1673,49 @@ async function endTournament(tid,btn){
   btn.disabled=true;btn.textContent='Ending...';
   await sb.from('tournaments').update({status:'ended'}).eq('id',tid);
   loadAdminTourns();loadSidebar();
+}
+
+async function deleteTournament(tid,btn,name){
+  if(!confirm(`Delete "${name}" permanently? This cannot be undone and all entries will be removed.`))return;
+  btn.disabled=true;btn.textContent='Deleting...';
+  await sb.from('tournament_entries').delete().eq('tournament_id',tid);
+  const{error}=await sb.from('tournaments').delete().eq('id',tid);
+  if(error){btn.disabled=false;btn.textContent='Delete';alert('Error: '+error.message);return;}
+  loadAdminTourns();loadSidebar();
+  // Recalculate pool after deletion
+  await redistributePool();
+}
+
+async function recalcPool(btn){
+  btn.disabled=true;btn.textContent='Recalculating...';
+  await redistributePool();
+  btn.disabled=false;btn.textContent='Recalc Pool';
+  loadAdminTourns();
+}
+
+async function redistributePool(){
+  // Get total prize pool from subscription payments
+  const{data:payments}=await sb.from('subscription_payments').select('prize_contribution');
+  const totalPool=payments?payments.reduce((sum,p)=>sum+(p.prize_contribution||0),0):0;
+  if(totalPool===0)return;
+
+  // Get all active tournaments
+  const{data:tournaments}=await sb.from('tournaments').select('id,name').eq('status','active');
+  if(!tournaments||tournaments.length===0)return;
+
+  // Get entry counts per tournament
+  const{data:entries}=await sb.from('tournament_entries').select('tournament_id').in('tournament_id',tournaments.map(t=>t.id));
+  const counts={};
+  tournaments.forEach(t=>counts[t.id]=0);
+  if(entries)entries.forEach(e=>{if(counts[e.tournament_id]!==undefined)counts[e.tournament_id]++;});
+  const totalEntries=Object.values(counts).reduce((a,b)=>a+b,0);
+
+  // Distribute weighted by entries (even split if no entries)
+  for(const t of tournaments){
+    const weight=totalEntries>0?counts[t.id]/totalEntries:1/tournaments.length;
+    const newPool=Math.round(totalPool*weight*100)/100;
+    await sb.from('tournaments').update({prize_pool:newPool}).eq('id',t.id);
+  }
 }
 
 // ===== SIDEBAR =====
