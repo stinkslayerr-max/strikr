@@ -858,6 +858,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
             <div class="profile-username">
               <span id="p-username">username</span>
               <span id="p-pro-badge" style="display:none;background:var(--orange);color:#fff;font-size:.6rem;padding:2px 7px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase">PRO</span>
+              <span id="p-founder-badge" style="display:none;background:linear-gradient(135deg,#c9501a,#e8621a,#f0a732);color:#fff;font-size:.6rem;padding:2px 7px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 1px 6px rgba(232,98,26,.4)">👑 Founder</span>
             </div>
             <div class="profile-counts">
               <div class="pc-item"><strong id="p-catches">0</strong><span>Catches</span></div>
@@ -2029,6 +2030,9 @@ async function loadProfile(username){
   document.getElementById('p-followers').textContent=followerCount||0;
   document.getElementById('p-following').textContent=followingCount||0;
   if(profile.is_pro)document.getElementById('p-pro-badge').style.display='inline';
+  // Founder badge — hardcoded to creator account
+  const founderBadge=document.getElementById('p-founder-badge');
+  if(founderBadge)founderBadge.style.display=profile.email==='stinkslayerr@gmail.com'?'inline':'none';
   const pb=profileCatches.reduce((m,x)=>x.weight_kg>m?x.weight_kg:m,0);
   const species=[...new Set(profileCatches.map(x=>x.species).filter(Boolean))];
   document.getElementById('ps-total').textContent=profileCatches.length;
