@@ -1436,7 +1436,7 @@ async function submitCatch(){
   const len=parseFloat(document.getElementById('f-len').value)||null;
   const meth=document.getElementById('f-meth').value;
   const notes=document.getElementById('f-notes').value.trim();
-  const isTour=document.getElementById('f-tourn').checked;
+  const isTour=logTab==='tourn';
   const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
   const catchLat=parseFloat(document.getElementById('f-lat').value)||null;
   const catchLng=parseFloat(document.getElementById('f-lng').value)||null;
