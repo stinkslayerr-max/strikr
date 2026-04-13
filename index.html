@@ -1377,10 +1377,10 @@ async function submitCatch(){
 function openEnterModal(tid,tname){
   if(!currentUser){showPage('auth');return;}
   activeTournId=tid;activeTournName=tname;
-  gpsLat=null;gpsLng=null;gpsVerified=false;entryPhotoBase64=null;
-  // reset both steps
-  document.getElementById('et-step1').style.display='';
-  document.getElementById('et-step2').style.display='none';
+  gpsLat=null;gpsLng=null;gpsVerified=true;entryPhotoBase64=null;
+  // Skip GPS step — go straight to entry form
+  document.getElementById('et-step1').style.display='none';
+  document.getElementById('et-step2').style.display='';
   document.getElementById('et-tourn-name').value=tname;
   document.getElementById('gps-status').className='gps-status gps-wait';
   document.getElementById('gps-status').innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Waiting for GPS...';
