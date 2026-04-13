@@ -400,10 +400,38 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .lb-close{position:absolute;top:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border2);color:var(--text);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.9rem}
 
 @media(max-width:600px){.catch-grid{grid-template-columns:repeat(2,1fr)}.profile-hero-inner{grid-template-columns:auto 1fr;}.profile-actions{grid-column:1/-1;flex-direction:row;align-items:center}.profile-stats-inner{grid-template-columns:repeat(2,1fr)}}
+
+/* MAP */
+.map-panel{height:calc(100vh - 56px);display:flex;flex-direction:column;margin:-1.5rem}
+.map-toolbar{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.map-toolbar h2{font-family:var(--font-d);font-size:1.4rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.map-legend{display:flex;gap:1rem;margin-left:auto;flex-wrap:wrap}
+.map-leg-item{display:flex;align-items:center;gap:5px;font-size:.72rem;color:var(--text2);font-weight:300}
+.map-leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+#strikr-map{flex:1;min-height:0;z-index:1}
+.map-pro-gate{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:2rem}
+.map-pro-gate h2{font-family:var(--font-d);font-size:2.5rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.65rem}
+.map-pro-gate p{font-size:.88rem;color:var(--text2);max-width:360px;line-height:1.7;font-weight:300;margin-bottom:1.75rem}
+.spot-popup{font-family:'Barlow',sans-serif;min-width:180px}
+.sp-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sp-species{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(232,98,26,.15);color:#e8621a;padding:2px 7px;border-radius:3px}
+.sp-user{font-size:.75rem;color:#666;font-weight:400}
+.sp-stats{display:flex;gap:8px;font-size:.78rem;color:#333;margin-bottom:4px}
+.sp-stat strong{font-weight:600}
+.sp-loc{font-size:.72rem;color:#888}
+.sp-private{font-size:.7rem;color:#e8621a;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+.drop-spot-btn{position:absolute;bottom:1.5rem;right:1rem;z-index:10;background:var(--orange);color:#fff;border:none;border-radius:var(--r);padding:.55rem 1.1rem;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:0 2px 12px rgba(232,98,26,.35);display:flex;align-items:center;gap:6px}
+.drop-spot-btn:hover{background:var(--orange2)}
+.map-count{font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)}
+.leaflet-popup-content-wrapper{background:#1e1e1c;border:1px solid rgba(242,239,232,.12);border-radius:4px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.leaflet-popup-tip{background:#1e1e1c}
+.leaflet-popup-content-wrapper .sp-user{color:#96938c}
+.leaflet-popup-content-wrapper .sp-stats{color:#f2efe8}
+.leaflet-popup-content-wrapper .sp-loc{color:#56544f}
+.leaflet-popup-close-button{color:#96938c!important}
+
 </style>
-
-
-</head>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <body>
 
 <nav>
@@ -611,7 +639,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       <ul class="s-nav">
         <li><a class="active" onclick="showPanel('feed');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Feed</a></li>
         <li><a onclick="showPanel('mycatches');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>My Catches</a></li>
-        <li><a onclick="setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Spot Map</a></li>
+        <li><a onclick="showPanel('map');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>Spot Map</a></li>
         <div class="s-sec">Compete</div>
         <li><a onclick="if(isUserPro){showPanel('tournaments');setNav(this);}else{showPanel('tournaments');setNav(this);}" ><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Tournaments</a></li>
         <div class="s-sec" id="admin-sec" style="display:none">Admin</div>
@@ -650,8 +678,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
             </label>
             <div class="tourn-note f-full" id="tourn-note">Tournament entry: photo must show fish on measurement board with ruler clearly visible. AI scans on submit.</div>
             <div class="ff f-full"><label>Notes</label><textarea id="f-notes" placeholder="Technique, bait, conditions..."></textarea></div>
+            <input type="hidden" id="f-lat"><input type="hidden" id="f-lng">
             <div class="f-full" style="display:flex;align-items:center;gap:.85rem;flex-wrap:wrap">
               <button class="btn" id="post-btn" onclick="submitCatch()" style="padding:.52rem 1.3rem">Post Catch</button>
+              <button type="button" class="btn-outline btn-sm" id="gps-catch-btn" onclick="captureCatchGPS()" style="display:flex;align-items:center;gap:5px;font-size:.74rem">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+                <span id="gps-catch-label">Pin Location</span>
+              </button>
               <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-tourn" style="accent-color:var(--orange)" onchange="document.getElementById('tourn-note').style.display=this.checked?'':'none'"> Tournament entry</label>
               <label style="display:flex;align-items:center;gap:5px;font-size:.76rem;color:var(--text2);cursor:pointer;font-weight:300"><input type="checkbox" id="f-release" style="accent-color:var(--green)"> Release only</label>
             </div>
@@ -715,6 +748,37 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         </div>
         <p style="font-size:.82rem;color:var(--text2);margin-bottom:1.1rem;line-height:1.65;font-weight:300">These tournament entries were flagged by AI — ruler unclear, species uncertain, or GPS check failed. Review the photo and AI notes, then approve or reject.</p>
         <div id="modQueue"><div class="spin-lg"></div></div>
+      </div>
+
+      <!-- SPOT MAP -->
+      <div id="panel-map" class="panel">
+        <div class="map-panel">
+          <!-- Pro gate -->
+          <div class="map-pro-gate" id="map-pro-gate" style="display:none">
+            <div style="font-family:var(--font-d);font-size:2.5rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.65rem">Spot Map</div>
+            <p>See where every catch in Australia was made. Log your own spots and keep your secret locations private. Pro only.</p>
+            <div style="font-family:var(--font-d);font-size:3rem;font-weight:800;color:var(--orange);line-height:1;margin-bottom:.25rem">$5<span style="font-size:1.2rem;color:var(--text3)">/mo</span></div>
+            <div style="font-size:.72rem;color:var(--text3);margin-bottom:1.75rem;font-weight:300">Cancel anytime</div>
+            <button class="btn" onclick="goPro.call(this)" style="padding:.65rem 2.5rem;font-size:.9rem">Upgrade to Pro</button>
+          </div>
+          <!-- Map -->
+          <div id="map-container" style="display:none;flex:1;flex-direction:column;height:100%">
+            <div class="map-toolbar">
+              <h2>Spot Map</h2>
+              <span class="map-count" id="map-catch-count">Loading...</span>
+              <div class="map-legend">
+                <div class="map-leg-item"><div class="map-leg-dot" style="background:#e8621a"></div>Your catches</div>
+                <div class="map-leg-item"><div class="map-leg-dot" style="background:#f2efe8"></div>Community</div>
+                <div class="map-leg-item"><div class="map-leg-dot" style="background:#4a9e6a"></div>Private spots</div>
+              </div>
+              <button class="btn btn-sm" id="drop-spot-btn" onclick="dropPrivateSpot()" style="margin-left:auto;display:flex;align-items:center;gap:5px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                Drop Spot
+              </button>
+            </div>
+            <div id="strikr-map"></div>
+          </div>
+        </div>
       </div>
     </main>
 
@@ -870,6 +934,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="/supabase.min.js"></script>
 <script>
 const SURL='https://mkcbkxihvbugypydsqnz.supabase.co';
@@ -1071,8 +1136,10 @@ async function submitCatch(){
   const notes=document.getElementById('f-notes').value.trim();
   const isTour=document.getElementById('f-tourn').checked;
   const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
+  const catchLat=parseFloat(document.getElementById('f-lat').value)||null;
+  const catchLng=parseFloat(document.getElementById('f-lng').value)||null;
   setLoading('post-btn',true,'Post Catch');
-  const{data,error}=await sb.from('catches').insert({user_id:currentUser.id,username:uname,species:sp,location:loc||null,weight_kg:wt,length_cm:len,method:meth||null,notes:notes||null,tournament_entry:isTour,verified:!isTour,photo_data:catchPhotoBase64||null}).select().single();
+  const{data,error}=await sb.from('catches').insert({user_id:currentUser.id,username:uname,species:sp,location:loc||null,weight_kg:wt,length_cm:len,method:meth||null,notes:notes||null,tournament_entry:isTour,verified:!isTour,photo_data:catchPhotoBase64||null,catch_lat:catchLat,catch_lng:catchLng}).select().single();
   setLoading('post-btn',false,'Post Catch');
   if(error){alert('Error: '+error.message);return;}
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
@@ -1672,11 +1739,122 @@ function shareProfile(){
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
 }
 
+// ===== GPS CATCH CAPTURE =====
+function captureCatchGPS(){
+  const btn=document.getElementById('gps-catch-btn');
+  const lbl=document.getElementById('gps-catch-label');
+  btn.disabled=true;lbl.textContent='Getting GPS...';
+  if(!navigator.geolocation){lbl.textContent='Pin Location';btn.disabled=false;return;}
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      document.getElementById('f-lat').value=pos.coords.latitude;
+      document.getElementById('f-lng').value=pos.coords.longitude;
+      lbl.textContent='📍 Pinned';
+      btn.style.color='var(--green)';
+      btn.disabled=false;
+    },
+    ()=>{lbl.textContent='Pin Location';btn.disabled=false;}
+  ,{enableHighAccuracy:true,timeout:10000});
+}
+
+// ===== SPOT MAP =====
+var strikrMap=null,mapLoaded=false;
+
+async function loadMap(){
+  if(!isUserPro){
+    document.getElementById('map-pro-gate').style.display='flex';
+    document.getElementById('map-container').style.display='none';
+    return;
+  }
+  document.getElementById('map-pro-gate').style.display='none';
+  document.getElementById('map-container').style.display='flex';
+
+  // Init Leaflet map if not already
+  if(!strikrMap){
+    strikrMap=L.map('strikr-map',{center:[-27,134],zoom:4,zoomControl:true});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© OpenStreetMap',
+      maxZoom:18
+    }).addTo(strikrMap);
+  }
+
+  // Clear existing markers
+  strikrMap.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.CircleMarker)strikrMap.removeLayer(l);});
+
+  // Load all catches with coordinates from Australia
+  const{data:catches}=await sb.from('catches').select('*').not('catch_lat','is',null).not('catch_lng','is',null);
+
+  // Load private spots for current user
+  const{data:spots}=await sb.from('private_spots').select('*').eq('user_id',currentUser.id);
+
+  const total=(catches?.length||0)+(spots?.length||0);
+  document.getElementById('map-catch-count').textContent=total+' spots mapped';
+
+  // Plot catches
+  if(catches){
+    catches.forEach(c=>{
+      const isOwn=c.user_id===currentUser.id;
+      const color=isOwn?'#e8621a':'#f2efe8';
+      const marker=L.circleMarker([c.catch_lat,c.catch_lng],{
+        radius:isOwn?8:6,
+        fillColor:color,
+        color:isOwn?'#c9501a':'#96938c',
+        weight:1.5,
+        fillOpacity:0.85
+      }).addTo(strikrMap);
+      const photo=c.photo_data?`<img src="data:image/jpeg;base64,${c.photo_data}" style="width:100%;max-height:120px;object-fit:cover;border-radius:3px;margin-bottom:6px;display:block">`:'';
+      marker.bindPopup(`<div class="spot-popup">${photo}<div class="sp-head">${c.species?`<span class="sp-species">${c.species}</span>`:''}<span class="sp-user">@${c.username||'angler'}</span></div><div class="sp-stats">${c.weight_kg?`<span><strong>${c.weight_kg}kg</strong></span>`:''} ${c.length_cm?`<span><strong>${c.length_cm}cm</strong></span>`:''} ${c.method?`<span>${c.method}</span>`:''}</div>${c.location?`<div class="sp-loc">📍 ${c.location}</div>`:''}</div>`,{maxWidth:220});
+    });
+  }
+
+  // Plot private spots
+  if(spots){
+    spots.forEach(s=>{
+      const marker=L.marker([s.lat,s.lng],{
+        icon:L.divIcon({
+          html:`<div style="width:16px;height:16px;border-radius:50%;background:#4a9e6a;border:2px solid #2d7a50;box-shadow:0 0 6px rgba(74,158,106,.5)"></div>`,
+          className:'',iconAnchor:[8,8]
+        })
+      }).addTo(strikrMap);
+      marker.bindPopup(`<div class="spot-popup"><div class="sp-private">🔒 Private Spot</div><div class="sp-stats" style="margin-top:4px">${s.name?`<strong>${s.name}</strong>`:''}</div>${s.notes?`<div class="sp-loc" style="margin-top:4px">${s.notes}</div>`:''}</div>`,{maxWidth:200});
+    });
+  }
+
+  // Fit to Australia if no catches
+  if(!catches||catches.length===0){strikrMap.setView([-27,134],4);}
+
+  // Invalidate size after panel shows
+  setTimeout(()=>strikrMap.invalidateSize(),100);
+}
+
+async function dropPrivateSpot(){
+  if(!navigator.geolocation){alert('GPS not available in your browser.');return;}
+  const btn=document.getElementById('drop-spot-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Getting location...';
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const name=prompt('Name this spot (optional):');
+      const notes=prompt('Notes (optional):');
+      const{error}=await sb.from('private_spots').insert({
+        user_id:currentUser.id,
+        lat:pos.coords.latitude,
+        lng:pos.coords.longitude,
+        name:name||null,
+        notes:notes||null
+      });
+      btn.disabled=false;btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Drop Spot';
+      if(!error)loadMap();
+      else alert('Error saving spot: '+error.message);
+    },
+    ()=>{btn.disabled=false;btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Drop Spot';alert('Could not get your location.');}
+  ,{enableHighAccuracy:true,timeout:10000});
+}
+
 function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/profile/')){const u=hash.replace('#/profile/','');if(u)loadProfile(u);}}
 window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
-function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();}
+function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+n).classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();}
 function goHome(){showPage(currentUser?'app':'landing');}
 function updateNav(u){if(u){document.getElementById('nav-auth').style.display='none';document.getElementById('nav-user').style.display='flex';document.getElementById('nav-av').textContent=u.substring(0,2).toUpperCase();document.getElementById('nav-uname').textContent=u;}else{document.getElementById('nav-auth').style.display='flex';document.getElementById('nav-user').style.display='none';}}
 function setNav(el){document.querySelectorAll('.s-nav a').forEach(a=>a.classList.remove('active'));if(el)el.classList.add('active');}
