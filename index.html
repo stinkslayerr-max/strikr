@@ -773,7 +773,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
                 <div class="af-fg"><label>Prize Pool ($)</label><input type="number" id="ct-prize" placeholder="100" min="0"></div>
                 <div class="af-fg"><label>Type</label><select id="ct-type"><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select></div>
                 <div class="af-fg"><label>Start Date</label><input type="datetime-local" id="ct-start"></div>
-                <div class="af-fg"><label>End Date</label><input type="datetime-local" id="ct-end"></div>
+                <div class="af-fg"><label>End Date</label>
+                  <input type="datetime-local" id="ct-end">
+                  <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text2);cursor:pointer;margin-top:5px;font-weight:300"><input type="checkbox" id="ct-no-end" style="accent-color:var(--orange)" onchange="document.getElementById('ct-end').style.opacity=this.checked?'.3':'1';document.getElementById('ct-end').disabled=this.checked"> No end date — runs until I stop it</label>
+                </div>
               </div>
               <div style="display:flex;gap:.65rem;margin-top:.85rem">
                 <button class="btn" id="ct-btn" onclick="createTournament()" style="padding:.52rem 1.3rem">Create Tournament</button>
@@ -960,7 +963,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
     <div class="af-grid" style="gap:.7rem;margin-bottom:1rem">
       <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Tournament Name</label><input type="text" id="et-tname" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
       <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Prize Pool ($)</label><input type="number" id="et-tprize" min="0" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
-      <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">End Date</label><input type="datetime-local" id="et-tends" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="af-fg af-full"><label style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">End Date</label>
+        <input type="datetime-local" id="et-tends" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.6rem .75rem;font-size:.84rem;border-radius:var(--r);outline:none;width:100%">
+        <label style="display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text2);cursor:pointer;margin-top:5px;font-weight:300"><input type="checkbox" id="et-no-end" style="accent-color:var(--orange)" onchange="document.getElementById('et-tends').style.opacity=this.checked?'.3':'1';document.getElementById('et-tends').disabled=this.checked"> No end date</label>
+      </div>
     </div>
     <div style="display:flex;gap:.65rem">
       <button class="btn-outline btn-full" onclick="closeModal()">Cancel</button>
@@ -1145,7 +1151,7 @@ async function loadLandingLeaderboard(){
     return;
   }
   const t=tourns[0];
-  const daysLeft=Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
+  const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
 
   // Get verified entries sorted by metric
   const orderCol=t.metric==='length'?'length_cm':'weight_kg';
@@ -1164,7 +1170,7 @@ async function loadLandingLeaderboard(){
         <div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem">${t.name}</div>
         <div style="display:flex;gap:1.5rem">
           <div><span style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--orange)">$${Number(t.prize_pool).toLocaleString()}</span><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Prize Pool</div></div>
-          <div><span style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--text)">${daysLeft}</span><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Days Left</div></div>
+          <div><span style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--text)">${daysLeft}</span><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">${isOngoing?'Ongoing':'Days Left'}</div></div>
           <div><span style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--text)">${entries?entries.length:0}</span><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3)">Entries</div></div>
         </div>
       </div>`;
@@ -2010,7 +2016,7 @@ async function loadTournaments(){
   let html='';
   if(monthly.length>0){
     const t=monthly[0];
-    const daysLeft=Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
+    const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
     const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',t.id).eq('verified',true).order('weight_kg',{ascending:false}).limit(10);
     html+=`<div class="tourn-hero">
       <div>
@@ -2050,7 +2056,7 @@ async function loadTournaments(){
   if(weekly.length>0){
     html+=`<div style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:.85rem">Weekly Pots</div><div class="tourn-list">`;
     for(const t of weekly){
-      const daysLeft=Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
+      const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
       const elapsed=Math.min(100,Math.round((new Date()-new Date(t.starts_at))/(new Date(t.ends_at)-new Date(t.starts_at))*100));
       const{data:entries}=await sb.from('tournament_entries').select('id').eq('tournament_id',t.id).eq('verified',true);
       html+=`<div class="t-card">
@@ -2092,7 +2098,7 @@ async function loadAdminTourns(){
   if(entries)entries.forEach(e=>{if(counts[e.tournament_id]!==undefined)counts[e.tournament_id]++;});
   c.innerHTML=tourns.map(t=>{
     const isActive=t.status==='active';
-    const daysLeft=Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
+    const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
     const entryCount=counts[t.id]||0;
     return `<div style="background:var(--bg2);border:1px solid ${isActive?'var(--orange-b)':'var(--border)'};border-left:3px solid ${isActive?'var(--orange)':'var(--text3)'};padding:1.25rem;border-radius:var(--r);margin-bottom:.75rem">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">
@@ -2131,7 +2137,10 @@ async function createTournament(){
   const prize=parseFloat(document.getElementById('ct-prize').value)||0;
   const type=document.getElementById('ct-type').value;
   const start=document.getElementById('ct-start').value;
-  const end=document.getElementById('ct-end').value;
+  const noEnd=document.getElementById('ct-no-end').checked;
+  const end=noEnd?'2099-12-31T23:59':document.getElementById('ct-end').value;
+  if(!start)return showAlert('ct-err','Please set a start date.');
+  if(!noEnd&&!end)return showAlert('ct-err','Please set an end date or tick "No end date".');
   if(!name)return showAlert('ct-err','Tournament name is required.');
   if(!start||!end)return showAlert('ct-err','Start and end dates are required.');
   if(new Date(end)<=new Date(start))return showAlert('ct-err','End date must be after start date.');
@@ -2180,8 +2189,11 @@ function editTournament(tid,name,prize,endsAt){
   document.getElementById('et-tid').value=tid;
   document.getElementById('et-tname').value=name;
   document.getElementById('et-tprize').value=prize;
-  // Format datetime-local value
-  document.getElementById('et-tends').value=new Date(endsAt).toISOString().slice(0,16);
+  const isNoEnd=endsAt.startsWith('2099');
+  document.getElementById('et-no-end').checked=isNoEnd;
+  document.getElementById('et-tends').disabled=isNoEnd;
+  document.getElementById('et-tends').style.opacity=isNoEnd?'.3':'1';
+  if(!isNoEnd)document.getElementById('et-tends').value=new Date(endsAt).toISOString().slice(0,16);
   document.getElementById('editTournModal').classList.add('open');
 }
 
@@ -2189,8 +2201,10 @@ async function saveEditTournament(){
   const tid=document.getElementById('et-tid').value;
   const name=document.getElementById('et-tname').value.trim();
   const prize=parseFloat(document.getElementById('et-tprize').value)||0;
-  const ends=document.getElementById('et-tends').value;
-  if(!name||!ends)return;
+  const noEnd=document.getElementById('et-no-end').checked;
+  const ends=noEnd?'2099-12-31T23:59':document.getElementById('et-tends').value;
+  if(!name)return;
+  if(!noEnd&&!ends)return;
   const{error}=await sb.from('tournaments').update({name,prize_pool:prize,ends_at:ends}).eq('id',tid);
   if(error){alert('Error: '+error.message);return;}
   closeModal();
