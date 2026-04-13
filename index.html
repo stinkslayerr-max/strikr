@@ -940,6 +940,20 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
   </div>
 </div>
 
+<!-- DELETE TOURNAMENT MODAL -->
+<div class="modal-ov" id="deleteModal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <h3>Delete Tournament?</h3>
+    <p style="font-size:.84rem;color:var(--text2);margin-bottom:.5rem;font-weight:300">This will permanently delete</p>
+    <p style="font-size:.9rem;color:var(--text);font-weight:600;margin-bottom:1.25rem" id="dtname"></p>
+    <p style="font-size:.78rem;color:var(--text3);margin-bottom:1.5rem;font-weight:300">All entries will also be removed. This cannot be undone.</p>
+    <div style="display:flex;gap:.65rem">
+      <button class="btn-outline btn-full" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-full btn-danger" onclick="confirmDelete()" style="background:var(--red);border:none">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
 <!-- LOG CATCH MODAL -->
 <div class="modal-ov" id="logModal">
   <div class="modal" style="max-width:500px">
@@ -1968,24 +1982,21 @@ async function endTournament(tid,btn){
   loadAdminTourns();loadSidebar();
 }
 
-async function deleteTournament(tid,btn,name){
-  // Replace button with inline confirm
-  const orig=btn.innerHTML;
-  btn.innerHTML='Sure? <span onclick="doDeleteTournament(\''+tid+'\',this)" style="color:#f4a09a;cursor:pointer;text-decoration:underline">Yes, delete</span> · <span onclick="this.closest(\'button\').innerHTML=\'Delete\';this.closest(\'button\').disabled=false" style="cursor:pointer;text-decoration:underline">Cancel</span>';
-  btn.disabled=false;
+var _deleteTid=null;
+var _deleteTid=null;
+function deleteTournament(tid,btn,name){
+  _deleteTid=tid;
+  document.getElementById('dtname').textContent=name;
+  document.getElementById('deleteModal').classList.add('open');
 }
-
-async function doDeleteTournament(tid,el){
-  const btn=el.closest('button');
-  btn.disabled=true;btn.textContent='Deleting...';
+async function confirmDelete(){
+  if(!_deleteTid)return;
+  document.getElementById('deleteModal').classList.remove('open');
+  const tid=_deleteTid;_deleteTid=null;
   await sb.from('tournament_entries').delete().eq('tournament_id',tid);
-  const{error}=await sb.from('tournaments').delete().eq('id',tid);
-  if(error){btn.disabled=false;btn.textContent='Delete';alert('Error: '+error.message);return;}
-  // Force remove the card from DOM immediately
-  const card=btn.closest('div[style*="border-left"]');
-  if(card)card.remove();
+  await sb.from('tournaments').delete().eq('id',tid);
   loadAdminTourns();loadSidebar();
-  await redistributePool();
+  redistributePool();
 }
 
 async function recalcPool(btn){
