@@ -698,7 +698,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
         <div class="log-form" id="logForm">
           <h3>Log a Catch</h3>
           <div class="f-grid">
-            <div class="ff"><label>Species</label><select id="f-sp"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select></div>
+            <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%" oninput="this.setAttribute('data-val',this.value)"></div>
             <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
             <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
             <div class="ff"><label>Length (cm)</label><input type="number" id="f-len" placeholder="0" min="0"></div>
@@ -972,7 +972,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
       </div>
 
       <div class="f-grid" style="gap:.6rem;margin-bottom:.85rem">
-        <div class="ff"><label>Species</label><select id="et-sp"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select></div>
+        <div class="ff"><label>Species</label><select id="et-sp" onchange="toggleCustomSpecies(this,'et-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="et-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
         <div class="ff"><label>Weight (kg)</label><input type="number" id="et-wt" placeholder="0.0" step="0.1" min="0"></div>
         <div class="ff"><label>Length (cm)</label><input type="number" id="et-len" placeholder="0" min="0"></div>
         <div class="ff"><label>Method</label><select id="et-meth"><option value="">Select...</option><option>Surface lure</option><option>Soft plastic</option><option>Live bait</option><option>Dead bait</option><option>Fly</option><option>Jigging</option><option>Other</option></select></div>
@@ -1196,7 +1196,10 @@ function handlePhotoSelect(input){
 
 async function submitCatch(){
   if(!currentUser){showPage('auth');return;}
-  const sp=document.getElementById('f-sp').value;if(!sp)return;
+  const spSel=document.getElementById('f-sp').value;
+  const spCustom=document.getElementById('f-sp-custom').value.trim();
+  const sp=spSel==='Other'?spCustom:spSel;
+  if(!sp)return;
   const loc=document.getElementById('f-loc').value.trim();
   const wt=parseFloat(document.getElementById('f-wt').value)||null;
   const len=parseFloat(document.getElementById('f-len').value)||null;
@@ -1211,6 +1214,7 @@ async function submitCatch(){
   setLoading('post-btn',false,'Post Catch');
   if(error){alert('Error: '+error.message);return;}
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
   document.getElementById('f-tourn').checked=false;
   document.getElementById('tourn-note').style.display='none';
   catchPhotoBase64=null;
@@ -1343,8 +1347,10 @@ async function checkWaterway(lat,lng){
 async function submitEntry(){
   hideAlert('et-err');hideAlert('et-ok');hideAlert('et-warn');
   if(!entryPhotoBase64)return showAlert('et-err','Please upload an entry photo. Fish must be on a measurement board with ruler visible.');
-  const sp=document.getElementById('et-sp').value;
-  if(!sp)return showAlert('et-err','Please select the species.');
+  const etSpSel=document.getElementById('et-sp').value;
+  const etSpCustom=document.getElementById('et-sp-custom')?.value.trim()||'';
+  const sp=etSpSel==='Other'?etSpCustom:etSpSel;
+  if(!sp)return showAlert('et-err','Please select or enter the species.');
   const wt=parseFloat(document.getElementById('et-wt').value)||null;
   const len=parseFloat(document.getElementById('et-len').value)||null;
   if(!wt&&!len)return showAlert('et-err','Please enter the weight or length of the fish.');
@@ -2020,6 +2026,11 @@ function setMobileNav(tab){
   document.querySelectorAll('.mn-item').forEach(b=>b.classList.remove('active'));
   const el=document.getElementById('mn-'+tab);
   if(el)el.classList.add('active');
+}
+function toggleCustomSpecies(sel,inputId){
+  const input=document.getElementById(inputId);
+  if(sel.value==='Other'){input.style.display='block';input.focus();}
+  else{input.style.display='none';input.value='';}
 }
 function goHome(){showPage(currentUser?'app':'landing');}
 function updateNav(u){if(u){document.getElementById('nav-auth').style.display='none';document.getElementById('nav-user').style.display='flex';document.getElementById('nav-av').textContent=u.substring(0,2).toUpperCase();document.getElementById('nav-uname').textContent=u;}else{document.getElementById('nav-auth').style.display='flex';document.getElementById('nav-user').style.display='none';}}
