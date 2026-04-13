@@ -1209,10 +1209,67 @@ async function submitCatch(){
   const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
   const catchLat=parseFloat(document.getElementById('f-lat').value)||null;
   const catchLng=parseFloat(document.getElementById('f-lng').value)||null;
+
+  // ── Hard size limits per species (kg) ──────────────────────────
+  const SIZE_LIMITS={
+    'Bream':5,'Flathead':15,'Kingfish':45,'Mulloway':55,
+    'Luderick':3,'Trevally':15,'Snapper':20,'Tailor':5,
+    'Whiting':2
+  };
+  if(wt&&SIZE_LIMITS[sp]&&wt>SIZE_LIMITS[sp]){
+    alert(`That's a big ${sp}! The maximum recorded weight for ${sp} is ${SIZE_LIMITS[sp]}kg. Please double-check your entry.`);
+    return;
+  }
+
   setLoading('post-btn',true,'Post Catch');
-  const{data,error}=await sb.from('catches').insert({user_id:currentUser.id,username:uname,species:sp,location:loc||null,weight_kg:wt,length_cm:len,method:meth||null,notes:notes||null,tournament_entry:isTour,verified:!isTour,photo_data:catchPhotoBase64||null,catch_lat:catchLat,catch_lng:catchLng}).select().single();
+
+  // ── AI photo moderation ─────────────────────────────────────────
+  let photoStatus='none';
+  let photoFlag=false;
+  let photoReason=null;
+
+  if(catchPhotoBase64){
+    try{
+      const modResult=await runPhotoModeration(catchPhotoBase64,sp,wt);
+      if(modResult.reject){
+        setLoading('post-btn',false,'Post Catch');
+        alert('Photo rejected: '+modResult.reason+'\n\nPlease upload an appropriate fishing photo.');
+        return;
+      }
+      if(modResult.flag){photoStatus='flagged';photoFlag=true;photoReason=modResult.reason;}
+      else photoStatus='approved';
+    }catch(e){
+      // If AI fails, allow post but flag for review
+      photoStatus='flagged';photoFlag=true;photoReason='AI moderation unavailable — flagged for manual review.';
+    }
+  }
+
+  // ── AI size plausibility check (if photo + size provided) ───────
+  if(catchPhotoBase64&&wt&&!photoFlag){
+    try{
+      const sizeCheck=await runSizePlausibilityCheck(catchPhotoBase64,sp,wt,len);
+      if(sizeCheck.suspicious){
+        photoStatus='flagged';photoFlag=true;
+        photoReason=(photoReason?photoReason+' ':'')+sizeCheck.reason;
+      }
+    }catch(e){}
+  }
+
+  const{data,error}=await sb.from('catches').insert({
+    user_id:currentUser.id,username:uname,species:sp,
+    location:loc||null,weight_kg:wt,length_cm:len,
+    method:meth||null,notes:notes||null,
+    tournament_entry:isTour,verified:!isTour&&!photoFlag,
+    photo_data:catchPhotoBase64||null,
+    catch_lat:catchLat,catch_lng:catchLng,
+    photo_status:photoStatus,
+    moderation_reason:photoReason
+  }).select().single();
+
   setLoading('post-btn',false,'Post Catch');
   if(error){alert('Error: '+error.message);return;}
+
+  // Reset form
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const fspC=document.getElementById('f-sp-custom');if(fspC){fspC.value='';fspC.style.display='none';}
   document.getElementById('f-tourn').checked=false;
@@ -1222,6 +1279,17 @@ async function submitCatch(){
   const z=document.getElementById('uploadZ');
   z.classList.remove('has-photo');
   z.innerHTML='<input type="file" id="f-photo" accept="image/*" onchange="handlePhotoSelect(this)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 5px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Add Photo — Tap or Drag';
+
+  if(photoFlag){
+    // Show under-review notice
+    const msg=document.createElement('div');
+    msg.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(212,136,42,.4);color:#f4c87a;padding:.75rem 1.5rem;border-radius:4px;font-size:.84rem;z-index:999;font-weight:500;max-width:320px;text-align:center';
+    msg.textContent='Catch posted — photo is under review and will appear once approved.';
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(),5000);
+    loadModCount();
+  }
+
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
   attachLikeHandlers();loadSidebar();checkAndAwardBadges();
@@ -1444,6 +1512,74 @@ async function submitEntry(){
   }
 }
 
+async function runPhotoModeration(photoBase64,species,weightKg){
+  const prompt=`You are a content moderator for a fishing social network. Analyse this photo and determine if it is appropriate to post.
+
+Reject (reject:true) if the photo contains:
+- Nudity or sexual content
+- Gore, graphic violence, or disturbing content
+- Hate symbols or offensive imagery
+- Spam, advertisements, or fake/stock images
+- Clearly not a fishing-related photo (no fish, water, or fishing gear visible)
+
+Flag for review (flag:true, reject:false) if:
+- Image quality is too poor to verify content
+- Something seems off or suspicious
+- Claimed species "${species}" doesn't match what's visible
+
+Approve (reject:false, flag:false) if it's a legitimate fishing photo.
+
+Respond ONLY in this JSON format:
+{"reject":true/false,"flag":true/false,"reason":"brief reason"}`;
+
+  const response=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:150,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoBase64}},
+        {type:'text',text:prompt}
+      ]}]
+    })
+  });
+  if(!response.ok)throw new Error('AI error');
+  const data=await response.json();
+  const text=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+  try{return JSON.parse(text);}
+  catch(e){return{reject:false,flag:true,reason:'Could not parse AI response — flagged for review.'};}
+}
+
+async function runSizePlausibilityCheck(photoBase64,species,weightKg,lengthCm){
+  const prompt=`Look at this photo of a ${species}. The angler claims it weighs ${weightKg}kg${lengthCm?' and measures '+lengthCm+'cm':''}.
+
+Does the fish in the photo look plausibly that size? Consider the fish relative to the angler's hands, the ground, or any measurement board visible.
+
+Respond ONLY in this JSON format:
+{"suspicious":true/false,"reason":"brief reason"}
+
+Only mark suspicious:true if the size seems significantly implausible (e.g. claiming 10kg but fish looks like 500g).`;
+
+  const response=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:100,
+      messages:[{role:'user',content:[
+        {type:'image',source:{type:'base64',media_type:'image/jpeg',data:photoBase64}},
+        {type:'text',text:prompt}
+      ]}]
+    })
+  });
+  if(!response.ok)throw new Error('AI error');
+  const data=await response.json();
+  const text=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+  try{return JSON.parse(text);}
+  catch(e){return{suspicious:false};}
+}
+
 async function runAIVerification(photoBase64,species,weightKg,lengthCm){
   const prompt=`You are a strict fishing tournament verification system. Analyse this catch photo and determine if it is a legitimate tournament entry.
 
@@ -1495,19 +1631,78 @@ Be firm. When in doubt, flag for human review rather than rejecting.`;
   }
 }
 
+async function reportCatch(catchId,btn){
+  if(!currentUser){showPage('auth');return;}
+  const reason=prompt('Why are you reporting this catch?\n\n1. Inappropriate photo\n2. Fake or unrealistic size\n3. Wrong species\n4. Spam\n5. Other\n\nEnter reason:');
+  if(!reason)return;
+  btn.textContent='Reported';btn.style.color='var(--amber)';btn.disabled=true;
+  await sb.from('catch_reports').insert({catch_id:catchId,reported_by:currentUser.id,reason});
+  // Also flag the catch for mod review
+  await sb.from('catches').update({photo_status:'flagged',moderation_reason:'Community report: '+reason}).eq('id',catchId);
+  loadModCount();
+}
+
 // ===== MOD QUEUE =====
 async function loadModQueue(){
   const c=document.getElementById('modQueue');
   c.innerHTML='<div class="spin-lg"></div>';
-  let q=sb.from('tournament_entries').select('*').order('created_at',{ascending:false});
-  try{q=sb.from('tournament_entries').select('*').in('verification_status',['flagged','pending']).order('created_at',{ascending:false});}catch(e){}
-  const{data:entries,error}=await q;
-  if(error||!entries||entries.length===0){
-    c.innerHTML='<div class="empty-state"><p>No entries pending review.</p></div>';return;
+
+  // Load flagged tournament entries
+  const{data:entries}=await sb.from('tournament_entries').select('*').in('verification_status',['flagged','pending']).order('created_at',{ascending:false});
+
+  // Load flagged catches (AI flagged or community reported)
+  const{data:flaggedCatches}=await sb.from('catches').select('*').eq('photo_status','flagged').order('created_at',{ascending:false});
+
+  const entryCards=entries&&entries.length>0?`
+    <div style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem;margin-top:.25rem">Tournament Entries</div>
+    ${entries.map(e=>modCardHTML(e)).join('')}`:'';
+
+  const catchCards=flaggedCatches&&flaggedCatches.length>0?`
+    <div style="font-family:var(--font-d);font-size:.63rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:.75rem;margin-top:1.25rem">Flagged Catches</div>
+    ${flaggedCatches.map(catch_=>catchModCardHTML(catch_)).join('')}`:'';
+
+  if(!entryCards&&!catchCards){
+    c.innerHTML='<div class="empty-state"><p>All caught up — nothing needs review.</p></div>';return;
   }
-  const pendingEntries=entries.filter(e=>e.verification_status==='flagged'||e.verification_status==='pending'||(!e.verified&&!e.verification_status));
-  if(pendingEntries.length===0){c.innerHTML='<div class="empty-state"><p>All caught up — no entries need review.</p></div>';return;}
-  c.innerHTML=pendingEntries.map(e=>modCardHTML(e)).join('');
+  c.innerHTML=entryCards+catchCards;
+}
+
+function catchModCardHTML(c){
+  const hasPhoto=c.photo_data;
+  const statusLabel=c.moderation_reason?.startsWith('Community report')?'Community Report':'AI Flagged';
+  const statusClass=c.moderation_reason?.startsWith('Community report')?'ms-flagged':'ms-pending';
+  return `<div class="mod-card flagged" id="catch-mod-${c.id}">
+    <div class="mod-head">
+      <span class="mod-status ${statusClass}">${statusLabel}</span>
+      <div class="mod-info">
+        <strong>@${c.username} — ${c.species||'Unknown'}${c.weight_kg?' · '+c.weight_kg+'kg':''}${c.length_cm?' · '+c.length_cm+'cm':''}</strong>
+        <span>${new Date(c.created_at).toLocaleString('en-AU')}</span>
+      </div>
+    </div>
+    <div class="mod-body">
+      ${hasPhoto?`<img class="mod-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo">`:'<div style="background:var(--bg3);height:80px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:.78rem;margin-bottom:.85rem">No photo</div>'}
+      ${c.moderation_reason?`<div class="mod-ai-box"><div class="mod-ai-label">Reason</div><div class="mod-ai-text">${c.moderation_reason}</div></div>`:''}
+      <div class="mod-actions">
+        <button class="btn btn-success btn-sm" onclick="approveCatch('${c.id}',this)">Approve — Show in Feed</button>
+        <button class="btn btn-danger btn-sm" onclick="removeCatch('${c.id}',this)">Remove Catch</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function approveCatch(id,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  await sb.from('catches').update({photo_status:'approved',moderation_reason:null,verified:true}).eq('id',id);
+  const card=document.getElementById('catch-mod-'+id);
+  if(card){card.style.opacity='0';card.style.transition='opacity .3s';setTimeout(()=>{card.remove();loadModCount();},300);}
+}
+
+async function removeCatch(id,btn){
+  if(!confirm('Remove this catch permanently?'))return;
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>';
+  await sb.from('catches').delete().eq('id',id);
+  const card=document.getElementById('catch-mod-'+id);
+  if(card){card.style.opacity='0';card.style.transition='opacity .3s';setTimeout(()=>{card.remove();loadModCount();},300);}
 }
 
 function modCardHTML(e){
@@ -1549,9 +1744,13 @@ async function modDecision(id,decision,btn){
 
 async function loadModCount(){
   try{
-    const{count}=await sb.from('tournament_entries').select('*',{count:'exact',head:true}).in('verification_status',['flagged','pending']);
+    const[{count:entryCount},{count:catchCount}]=await Promise.all([
+      sb.from('tournament_entries').select('*',{count:'exact',head:true}).in('verification_status',['flagged','pending']),
+      sb.from('catches').select('*',{count:'exact',head:true}).eq('photo_status','flagged')
+    ]);
+    const total=(entryCount||0)+(catchCount||0);
     const el=document.getElementById('mod-count');
-    if(count&&count>0){el.textContent=count;el.style.display='inline';}
+    if(total>0){el.textContent=total;el.style.display='inline';}
     else el.style.display='none';
   }catch(e){document.getElementById('mod-count').style.display='none';}
 }
@@ -1739,7 +1938,7 @@ function catchCardHTML(c){
     else if(vs==='rejected')badge='<span class="vbadge vb-fail"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>';
   }
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
-  return `<div class="catch-card"><div class="cc-head"><div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button></div></div>`;
+  return `<div class="catch-card"><div class="cc-head"><div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div><div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button></div></div>`;
 }
 
 function attachLikeHandlers(){
