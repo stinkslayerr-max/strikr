@@ -2274,7 +2274,6 @@ async function loadProfile(username){
   const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
   const initials=username.substring(0,2).toUpperCase();
   document.getElementById('p-av-text').textContent=initials;
-  document.getElementById('p-av').textContent='';
   // Show avatar image if exists
   const avImg=document.getElementById('p-av-img');
   const avOverlay=document.getElementById('p-av-overlay');
