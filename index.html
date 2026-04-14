@@ -3629,18 +3629,6 @@ async function deletePromoter(pid,btn){
   btn.closest('div[style*="border-radius"]').remove();
 }
 
-async function processReferral(code,newUserId){
-  // Find promoter with this code
-  const{data:promoter}=await sb.from('promoters').select('*').eq('code',code).single();
-  if(!promoter)return;
-  // Log referral
-  await sb.from('referrals').insert({promoter_id:promoter.id,referred_user_id:newUserId,code});
-  // Increment count
-  const newCount=promoter.referral_count+1;
-  const unlocked=newCount>=promoter.threshold;
-  await sb.from('promoters').update({referral_count:newCount,is_pro:unlocked}).eq('id',promoter.id);
-}
-
 async function deleteMyCatch(id,btn){
   btn.disabled=true;btn.textContent='...';
   const{error}=await sb.from('catches').delete().eq('id',id).eq('user_id',currentUser.id);
