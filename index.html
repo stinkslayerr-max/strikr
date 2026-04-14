@@ -421,6 +421,43 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .ib-text span{font-size:.75rem;color:var(--text2);font-weight:300}
 .ib-close{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:.25rem;flex-shrink:0}
 
+/* COMMENTS */
+.comments-box{background:var(--bg);border-top:1px solid var(--border);padding:.75rem 1rem}
+.comment-item{display:flex;gap:.6rem;margin-bottom:.65rem}
+.comment-av{width:22px;height:22px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:800;color:var(--orange);flex-shrink:0;border:1px solid var(--orange-b)}
+.comment-body{flex:1}
+.comment-user{font-size:.75rem;font-weight:600;color:var(--text);cursor:pointer}
+.comment-user:hover{color:var(--orange)}
+.comment-text{font-size:.78rem;color:var(--text2);font-weight:300;line-height:1.5;margin-top:1px}
+.comment-time{font-size:.65rem;color:var(--text3);margin-top:2px}
+.comment-input-row{display:flex;gap:.5rem;margin-top:.5rem}
+.comment-input{flex:1;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:.45rem .7rem;font-size:.8rem;border-radius:var(--r);outline:none;font-family:var(--font-b)}
+.comment-input:focus{border-color:var(--orange-b)}
+
+/* SHARE CARD */
+.share-card-modal{max-width:420px}
+#share-canvas{border-radius:var(--r);width:100%;display:block}
+
+/* TOURNAMENT LEADERBOARD */
+.tourn-lb{margin-top:1.25rem}
+.tlb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+.tlb-title{font-family:var(--font-d);font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.tlb-row{display:flex;align-items:center;gap:.85rem;padding:.75rem;background:var(--bg);border-radius:var(--r);margin-bottom:2px;transition:background .15s}
+.tlb-row:hover{background:var(--bg3)}
+.tlb-row.top1{background:rgba(232,98,26,.08);border-left:3px solid var(--orange)}
+.tlb-row.top2{background:rgba(150,147,140,.06);border-left:3px solid var(--text3)}
+.tlb-row.top3{background:rgba(139,90,43,.06);border-left:3px solid #8b5a2b}
+.tlb-rank{font-family:var(--font-d);font-size:1.3rem;font-weight:800;width:32px;text-align:center;flex-shrink:0}
+.tlb-photo{width:48px;height:48px;object-fit:cover;border-radius:var(--r);flex-shrink:0;border:1px solid var(--border2)}
+.tlb-photo-blank{width:48px;height:48px;background:var(--bg3);border-radius:var(--r);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.65rem;color:var(--text3)}
+.tlb-info{flex:1;min-width:0}
+.tlb-user{font-size:.86rem;font-weight:600;color:var(--text);cursor:pointer}
+.tlb-user:hover{color:var(--orange)}
+.tlb-species{font-size:.72rem;color:var(--text3);font-weight:300;margin-top:1px}
+.tlb-val{font-family:var(--font-d);font-size:1.5rem;font-weight:800;color:var(--orange);flex-shrink:0}
+.tlb-val.silver{color:var(--text2)}
+.tlb-val.bronze{color:#8b5a2b}
+
 /* SKELETON */
 .skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--r)}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
@@ -1017,6 +1054,20 @@ img{decoding:async}
     <div style="display:flex;gap:.65rem">
       <button class="btn-outline btn-full" onclick="closeModal()">Cancel</button>
       <button class="btn btn-full" onclick="saveEditTournament()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE CARD MODAL -->
+<div class="modal-ov" id="shareCardModal">
+  <div class="modal share-card-modal">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>Share Catch</h3>
+    <p style="font-size:.8rem;color:var(--text2);margin-bottom:1rem;font-weight:300">Download and post to Instagram</p>
+    <canvas id="share-canvas" width="1080" height="1080"></canvas>
+    <div style="display:flex;gap:.65rem;margin-top:1rem">
+      <button class="btn btn-full" onclick="downloadShareCard()">Download Image</button>
+      <button class="btn-outline btn-full" onclick="closeModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -1962,7 +2013,7 @@ async function loadTournaments(){
         </ul>
       </div>
       <div class="tourn-cell"><h4>Live Leaderboard</h4><p>Verified entries only.</p>
-        <div class="lb-list">${entries&&entries.length>0?entries.slice(0,5).map((e,i)=>`<div class="lb-row"><div class="lb-num ${i===0?'g':i===1?'s':i===2?'b':''}">${i+1}</div><div class="lb-inf"><strong>${e.username}</strong><span>${e.species||''}${e.weight_kg?' · '+e.weight_kg+'kg':''}</span></div><div class="lb-val">${e.weight_kg?e.weight_kg+'kg':'—'}</div></div>`).join(''):'<p style="font-size:.78rem;color:var(--text3);padding:.5rem 0;font-weight:300">No verified entries yet.</p>'}
+        <div>${entries&&entries.length>0?_renderLeaderboard(entries,t.metric):'<p style="font-size:.78rem;color:var(--text3);padding:.5rem 0;font-weight:300">No verified entries yet.</p>'}
         </div>
       </div>
     </div>`;
@@ -2260,7 +2311,7 @@ function catchCardHTML(c){
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
   const avUrl=avatarCache[c.username];
   const avEl=avUrl?`<div class="av" onclick="loadProfile('${c.username||''}')" style="overflow:hidden;padding:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div>`;
-  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Comment</button><button class="cc-act" onclick="if('${c.username}'){const u='https://strikr.vercel.app#/profile/${c.username}';navigator.clipboard&&navigator.clipboard.writeText(u);this.textContent='Copied!';setTimeout(()=>this.textContent='Share',2000);}">Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div></div>`;
+  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act comment-toggle-btn" data-catch-id="${c.id}" onclick="toggleComments('${c.id}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="comment-count-${c.id}">Comment</span></button><button class="cc-act" onclick="openShareCard('${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div><div class="comments-box" id="comments-box-${c.id}" style="display:none"></div></div>`;
 }
 
 function attachLikeHandlers(){
@@ -2412,6 +2463,184 @@ function shareProfile(){
   const url='https://strikr.vercel.app#/profile/'+profileUsername;
   if(navigator.share){navigator.share({title:profileUsername+' on Strikr',url});}
   else{navigator.clipboard.writeText(url);const btn=document.querySelector('.profile-actions .btn-ghost');const orig=btn.textContent;btn.textContent='Copied!';setTimeout(()=>btn.textContent=orig,2000);}
+}
+
+// ===== COMMENTS =====
+var _commentCache={};
+
+async function toggleComments(catchId,btn){
+  const box=document.getElementById('comments-box-'+catchId);
+  if(box.style.display==='block'){box.style.display='none';return;}
+  box.style.display='block';
+  box.innerHTML='<div class="spin-lg" style="width:16px;height:16px;margin:.5rem auto"></div>';
+  await loadComments(catchId);
+}
+
+async function loadComments(catchId){
+  const box=document.getElementById('comments-box-'+catchId);
+  const{data:comments}=await sb.from('comments').select('*').eq('catch_id',catchId).order('created_at',{ascending:true});
+  const count=comments?comments.length:0;
+  // Update button count
+  const countEl=document.querySelector('.comment-count-'+catchId);
+  if(countEl)countEl.textContent=count>0?count+' Comment'+(count!==1?'s':''):'Comment';
+
+  let html='';
+  if(comments&&comments.length>0){
+    html+=comments.map(cm=>`<div class="comment-item">
+      <div class="comment-av">${(cm.username||'?').substring(0,2).toUpperCase()}</div>
+      <div class="comment-body">
+        <span class="comment-user" onclick="loadProfile('${cm.username}')">${cm.username}</span>
+        <div class="comment-text">${cm.content}</div>
+        <div class="comment-time">${timeAgo(cm.created_at)}${currentUser&&(cm.user_id===currentUser.id||currentUser.email==='stinkslayerr@gmail.com')?` · <span onclick="deleteComment('${cm.id}','${catchId}',this)" style="cursor:pointer;color:var(--red)">delete</span>`:''}</div>
+      </div>
+    </div>`).join('');
+  }
+  // Input row
+  if(currentUser){
+    html+=`<div class="comment-input-row">
+      <input class="comment-input" id="comment-input-${catchId}" placeholder="Add a comment..." maxlength="200" onkeydown="if(event.key==='Enter')postComment('${catchId}')">
+      <button class="btn btn-sm" onclick="postComment('${catchId}')" style="flex-shrink:0">Post</button>
+    </div>`;
+  }
+  box.innerHTML=html||'<div class="comment-input-row"><input class="comment-input" id="comment-input-'+catchId+'" placeholder="Be the first to comment..." maxlength="200" onkeydown="if(event.key===\'Enter\')postComment(\''+catchId+'\')"><button class="btn btn-sm" onclick="postComment(\''+catchId+'\')" style="flex-shrink:0">Post</button></div>';
+}
+
+async function postComment(catchId){
+  if(!currentUser){showPage('auth');return;}
+  const input=document.getElementById('comment-input-'+catchId);
+  const content=input?.value.trim();
+  if(!content)return;
+  const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
+  input.value='';
+  await sb.from('comments').insert({catch_id:catchId,user_id:currentUser.id,username:uname,content});
+  await loadComments(catchId);
+}
+
+async function deleteComment(commentId,catchId,el){
+  await sb.from('comments').delete().eq('id',commentId);
+  el.closest('.comment-item').remove();
+  await loadComments(catchId);
+}
+
+// ===== SHARE CARD =====
+var _shareCardData=null;
+
+async function openShareCard(catchId){
+  const{data:c}=await sb.from('catches').select('*').eq('id',catchId).single();
+  if(!c)return;
+  _shareCardData=c;
+  document.getElementById('shareCardModal').classList.add('open');
+  setTimeout(()=>renderShareCard(c),100);
+}
+
+function renderShareCard(c){
+  const canvas=document.getElementById('share-canvas');
+  const ctx=canvas.getContext('2d');
+  const W=1080,H=1080;
+  canvas.width=W;canvas.height=H;
+
+  // Background
+  ctx.fillStyle='#0f0f0e';
+  ctx.fillRect(0,0,W,H);
+
+  // If photo exists, draw it
+  if(c.photo_data){
+    const img=new Image();
+    img.onload=()=>{
+      // Draw photo taking up top 70%
+      const ph=H*0.68;
+      ctx.drawImage(img,0,0,W,ph);
+      // Dark gradient overlay at bottom of photo
+      const grad=ctx.createLinearGradient(0,ph*0.5,0,ph);
+      grad.addColorStop(0,'rgba(15,15,14,0)');
+      grad.addColorStop(1,'rgba(15,15,14,1)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(0,0,W,ph);
+      _drawShareCardText(ctx,c,W,H,ph);
+    };
+    img.src='data:image/jpeg;base64,'+c.photo_data;
+  } else {
+    _drawShareCardText(ctx,c,W,H,0);
+  }
+}
+
+function _drawShareCardText(ctx,c,W,H,photoH){
+  const y=photoH>0?photoH+40:400;
+
+  // Orange accent line
+  ctx.fillStyle='#e8621a';
+  ctx.fillRect(80,y-10,60,6);
+
+  // Species
+  if(c.species){
+    ctx.font='bold 52px "Arial Narrow", Arial';
+    ctx.fillStyle='#e8621a';
+    ctx.letterSpacing='8px';
+    ctx.fillText(c.species.toUpperCase(),80,y+55);
+  }
+
+  // Stats
+  ctx.font='bold 96px "Arial Narrow", Arial';
+  ctx.fillStyle='#f2efe8';
+  let stat='';
+  if(c.length_cm)stat=c.length_cm+'cm';
+  else if(c.weight_kg)stat=c.weight_kg+'kg';
+  if(stat)ctx.fillText(stat,80,y+160);
+
+  // Username + location
+  ctx.font='32px Arial';
+  ctx.fillStyle='#96938c';
+  ctx.fillText('@'+c.username+(c.location?' · '+c.location:''),80,y+210);
+
+  // Strikr branding bottom right
+  ctx.font='bold 36px "Arial Narrow", Arial';
+  ctx.fillStyle='#e8621a';
+  ctx.textAlign='right';
+  ctx.fillText('STRIKR',W-80,H-80);
+  ctx.font='24px Arial';
+  ctx.fillStyle='#56544f';
+  ctx.fillText('strikr.vercel.app',W-80,H-45);
+  ctx.textAlign='left';
+}
+
+function downloadShareCard(){
+  const canvas=document.getElementById('share-canvas');
+  const link=document.createElement('a');
+  link.download='strikr-catch.jpg';
+  link.href=canvas.toDataURL('image/jpeg',0.92);
+  link.click();
+}
+
+// ===== IMPROVED TOURNAMENT LEADERBOARD =====
+async function loadWeeklyLB(tid,btn){
+  const box=document.getElementById('lb-'+tid);
+  if(box.style.display==='block'){box.style.display='none';btn.textContent='Leaderboard';return;}
+  btn.textContent='Loading...';
+  const{data:t}=await sb.from('tournaments').select('metric').eq('id',tid).single();
+  const orderCol=t?.metric==='length'?'length_cm':'weight_kg';
+  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tid).eq('verified',true).order(orderCol,{ascending:false}).limit(10);
+  box.innerHTML=_renderLeaderboard(entries,t?.metric);
+  box.style.display='block';
+  btn.textContent='Hide Leaderboard';
+}
+
+function _renderLeaderboard(entries,metric){
+  if(!entries||entries.length===0)return '<p style="font-size:.8rem;color:var(--text3);padding:.75rem 0;font-weight:300;text-align:center">No verified entries yet — be the first!</p>';
+  const medals=['🥇','🥈','🥉'];
+  const rankClass=['top1','top2','top3'];
+  return '<div class="tourn-lb">'+entries.map((e,i)=>{
+    const val=metric==='length'?e.length_cm+'cm':metric==='weight'?e.weight_kg+'kg':(e.length_cm||e.weight_kg)?(e.length_cm?e.length_cm+'cm':e.weight_kg+'kg'):'—';
+    const valClass=i===0?'':i===1?'silver':'bronze';
+    return `<div class="tlb-row ${rankClass[i]||''}">
+      <div class="tlb-rank">${medals[i]||'#'+(i+1)}</div>
+      ${e.photo_data?`<img class="tlb-photo" src="data:image/jpeg;base64,${e.photo_data}" loading="lazy">`:'<div class="tlb-photo-blank">No photo</div>'}
+      <div class="tlb-info">
+        <div class="tlb-user" onclick="loadProfile('${e.username}')">${e.username}</div>
+        <div class="tlb-species">${e.species||''}${e.length_cm&&metric!=='length'?' · '+e.length_cm+'cm':''}${e.weight_kg&&metric!=='weight'?' · '+e.weight_kg+'kg':''}</div>
+      </div>
+      <div class="tlb-val ${valClass}">${val}</div>
+    </div>`;
+  }).join('')+'</div>';
 }
 
 // ===== AVATAR =====
