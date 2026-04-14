@@ -2547,11 +2547,21 @@ function renderShareCard(c){
   if(c.photo_data){
     const img=new Image();
     img.onload=()=>{
-      // Draw photo taking up top 70%
       const ph=H*0.68;
-      ctx.drawImage(img,0,0,W,ph);
-      // Dark gradient overlay at bottom of photo
-      const grad=ctx.createLinearGradient(0,ph*0.5,0,ph);
+      // Cover fit — maintain aspect ratio, crop to fill
+      const imgAspect=img.width/img.height;
+      const targetAspect=W/ph;
+      let sx=0,sy=0,sw=img.width,sh=img.height;
+      if(imgAspect>targetAspect){
+        sw=img.height*targetAspect;
+        sx=(img.width-sw)/2;
+      } else {
+        sh=img.width/targetAspect;
+        sy=(img.height-sh)/2;
+      }
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,W,ph);
+      // Dark gradient overlay
+      const grad=ctx.createLinearGradient(0,ph*0.4,0,ph);
       grad.addColorStop(0,'rgba(15,15,14,0)');
       grad.addColorStop(1,'rgba(15,15,14,1)');
       ctx.fillStyle=grad;
