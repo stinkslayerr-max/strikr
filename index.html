@@ -421,6 +421,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .ib-text span{font-size:.75rem;color:var(--text2);font-weight:300}
 .ib-close{background:none;border:none;color:var(--text3);font-size:1rem;cursor:pointer;padding:.25rem;flex-shrink:0}
 
+/* SKELETON */
+.skeleton{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:var(--r)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk-card{height:200px;margin-bottom:1px}
+.sk-card+.sk-card{height:180px}
+
+/* PERFORMANCE */
+.cc-photo{will-change:auto;contain:content}
+img{decoding:async}
+
 /* FLOATING LOG BUTTON */
 .fab{position:fixed;bottom:5rem;right:1.25rem;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--orange);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 3px 16px rgba(232,98,26,.45);display:none;align-items:center;justify-content:center;transition:background .15s}
 .fab:hover{background:var(--orange2)}
@@ -1363,7 +1373,8 @@ async function checkProStatus(){
 async function loadFeed(tab){
   currentFeedTab=tab;
   const c=document.getElementById('feedContainer');
-  c.innerHTML='<div class="spin-lg"></div>';
+  // Show skeleton while loading
+  c.innerHTML='<div class="skeleton sk-card"></div><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div>';
   let q=sb.from('catches').select('*').order('created_at',{ascending:false}).limit(30);
   if(tab==='tournament')q=q.eq('tournament_entry',true);
   if(tab==='following'){
@@ -1568,6 +1579,8 @@ async function submitCatch(){
   setLoading('post-btn',false,'Post Catch');
   if(error){alert('Error: '+error.message);return;}
 
+  // Invalidate sidebar cache
+  _sidebarCache=null;
   // Reset form
   ['f-sp','f-loc','f-wt','f-len','f-meth','f-tide','f-notes','f-lat','f-lng'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   const fDate2=document.getElementById('f-date');if(fDate2)fDate2.value=new Date().toISOString().slice(0,10);
@@ -1589,7 +1602,7 @@ async function submitCatch(){
   // Add to feed
   const fc=document.getElementById('feedContainer');
   const el=document.createElement('div');el.innerHTML=catchCardHTML(data);fc.insertBefore(el.firstChild,fc.firstChild);
-  attachLikeHandlers();loadSidebar();checkAndAwardBadges();
+  attachLikeHandlers();setTimeout(()=>{loadSidebar();},100);checkAndAwardBadges();
 
   // Tournament entry if on tournament tab
   if(logTab==='tourn'){
@@ -2212,12 +2225,25 @@ async function redistributePool(){
 }
 
 // ===== SIDEBAR =====
+var _sidebarCache=null,_sidebarTs=0;
 async function loadSidebar(){
-  const{data:tourns}=await sb.from('tournaments').select('*').eq('status','active').order('prize_pool',{ascending:false}).limit(3);
-  document.getElementById('sidebar-tourns').innerHTML=tourns&&tourns.length>0?tourns.map(t=>`<div class="tc-card"><div class="tc-name">${t.name}</div><div style="font-size:.64rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:.1rem 0;font-family:var(--font-d)">${t.type} · ${t.species||'All species'}</div><div class="tc-prize">$${Number(t.prize_pool).toLocaleString()}</div><div class="tc-meta">Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')}</div></div>`).join(''):'<p style="font-size:.78rem;color:var(--text3);font-weight:300">No active tournaments.</p>';
-  const{data:top}=await sb.from('catches').select('*').order('weight_kg',{ascending:false}).limit(5);
+  // Cache sidebar for 60 seconds
+  if(_sidebarCache&&Date.now()-_sidebarTs<60000){
+    _renderSidebar(_sidebarCache);return;
+  }
+  // Run all 3 queries in parallel
+  const[{data:tourns},{data:top},{data:sp}]=await Promise.all([
+    sb.from('tournaments').select('id,name,type,species,prize_pool,ends_at').eq('status','active').order('prize_pool',{ascending:false}).limit(3),
+    sb.from('catches').select('username,species,weight_kg').not('weight_kg','is',null).order('weight_kg',{ascending:false}).limit(5),
+    sb.from('catches').select('species').not('species','is',null).limit(50)
+  ]);
+  _sidebarCache={tourns,top,sp};_sidebarTs=Date.now();
+  _renderSidebar(_sidebarCache);
+}
+
+function _renderSidebar({tourns,top,sp}){
+  document.getElementById('sidebar-tourns').innerHTML=tourns&&tourns.length>0?tourns.map(t=>`<div class="tc-card"><div class="tc-name">${t.name}</div><div style="font-size:.64rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin:.1rem 0;font-family:var(--font-d)">${t.type} · ${t.species||'All species'}</div><div class="tc-prize">$${Number(t.prize_pool).toLocaleString()}</div><div class="tc-meta">${t.ends_at&&t.ends_at.startsWith('2099')?'Ongoing':'Ends '+new Date(t.ends_at).toLocaleDateString('en-AU')}</div></div>`).join(''):'<p style="font-size:.78rem;color:var(--text3);font-weight:300">No active tournaments.</p>';
   document.getElementById('sidebar-lb').innerHTML=top&&top.length>0?top.map((c,i)=>`<div class="side-lb-item"><div class="side-lb-r ${i===0?'gold':''}">${i+1}</div><div class="side-lb-i"><strong>${c.username}</strong><span>${c.species||''}${c.weight_kg?' · '+c.weight_kg+'kg':''}</span></div><div class="side-lb-s">${c.weight_kg?c.weight_kg+'kg':'—'}</div></div>`).join(''):'<p style="font-size:.78rem;color:var(--text3);font-weight:300">No catches yet.</p>';
-  const{data:sp}=await sb.from('catches').select('species').not('species','is',null).limit(50);
   const ss=document.getElementById('sidebar-species');
   if(sp&&sp.length>0){const cnt={};sp.forEach(x=>{if(x.species)cnt[x.species]=(cnt[x.species]||0)+1;});ss.innerHTML=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6).map(([s])=>`<span class="sp-tag">${s}</span>`).join('');}
 }
@@ -2266,12 +2292,23 @@ async function loadProfile(username){
   const{data:profile,error}=await sb.from('profiles').select('*').eq('username',username).single();
   if(error||!profile){document.getElementById('profile-loading').style.display='none';document.getElementById('profile-not-found').style.display='block';return;}
   profileData=profile;
-  const{data:catches}=await sb.from('catches').select('*').eq('user_id',profile.id).order('created_at',{ascending:false});
+
+  // Run all profile queries in parallel
+  const[
+    {data:catches},
+    {count:followerCount},
+    {count:followingCount},
+    {data:entries},
+    {data:followCheck}
+  ]=await Promise.all([
+    sb.from('catches').select('*').eq('user_id',profile.id).order('created_at',{ascending:false}),
+    sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',profile.id),
+    sb.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',profile.id),
+    sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true),
+    currentUser&&currentUser.id!==profile.id?sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single():Promise.resolve({data:null})
+  ]);
   profileCatches=catches||[];
-  const{count:followerCount}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('following_id',profile.id);
-  const{count:followingCount}=await sb.from('follows').select('*',{count:'exact',head:true}).eq('follower_id',profile.id);
-  if(currentUser&&currentUser.id!==profile.id){const{data:f}=await sb.from('follows').select('id').eq('follower_id',currentUser.id).eq('following_id',profile.id).single();isFollowing=!!f;}
-  const{data:entries}=await sb.from('tournament_entries').select('*').eq('user_id',profile.id).eq('verified',true);
+  if(currentUser&&currentUser.id!==profile.id)isFollowing=!!followCheck;
   const initials=username.substring(0,2).toUpperCase();
   const pAvText=document.getElementById('p-av-text');
   const avImg=document.getElementById('p-av-img');
