@@ -3496,32 +3496,120 @@ async function createPromoter(){
 async function loadPromoters(){
   const el=document.getElementById('promoter-list');
   el.innerHTML='<div class="spin-lg"></div>';
-  const{data:promoters}=await sb.from('promoters').select('*').order('created_at',{ascending:false});
-  if(!promoters||promoters.length===0){el.innerHTML='<div class="empty-state"><p>No promoters yet.</p></div>';return;}
-  el.innerHTML=promoters.map(p=>{
-    const pct=Math.min(100,Math.round((p.referral_count/p.threshold)*100));
-    const unlocked=p.referral_count>=p.threshold;
-    return `<div style="background:var(--bg2);border:1px solid ${unlocked?'var(--orange-b)':'var(--border)'};padding:1.1rem 1.25rem;border-radius:var(--r);margin-bottom:.65rem">
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem">
-        <div>
-          <div style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">${p.name}</div>
-          <div style="display:flex;align-items:center;gap:.65rem;margin-top:.35rem;flex-wrap:wrap">
-            <span style="font-family:var(--font-d);font-size:.75rem;font-weight:700;letter-spacing:.12em;background:var(--bg3);padding:3px 10px;border-radius:3px;color:var(--orange);border:1px solid var(--orange-b)">${p.code}</span>
-            <span style="font-size:.76rem;color:var(--text2);font-weight:300">${p.referral_count} / ${p.threshold} referrals</span>
-            ${unlocked?'<span style="font-size:.68rem;background:rgba(74,158,106,.1);color:#9fd4b1;border:1px solid rgba(74,158,106,.2);padding:2px 8px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em">PRO UNLOCKED</span>':''}
+
+  // Load both admin promoter codes AND user referrals in parallel
+  const[
+    {data:promoters},
+    {data:userReferrals},
+    {data:allProfiles}
+  ]=await Promise.all([
+    sb.from('promoters').select('*').order('referral_count',{ascending:false}),
+    sb.from('user_referrals').select('referral_code,created_at,referred_user_id'),
+    sb.from('profiles').select('username,id')
+  ]);
+
+  // Build username lookup
+  const profileMap={};
+  if(allProfiles)allProfiles.forEach(p=>profileMap[p.id]=p.username);
+
+  // Count user referrals per code
+  const userRefCounts={};
+  const userRefDetails={};
+  if(userReferrals){
+    userReferrals.forEach(r=>{
+      if(!userRefCounts[r.referral_code])userRefCounts[r.referral_code]=[];
+      userRefCounts[r.referral_code].push({date:r.created_at,userId:r.referred_user_id});
+    });
+  }
+
+  // Get all unique user codes and map to usernames
+  const userCodeMap={};
+  if(allProfiles){
+    allProfiles.forEach(p=>{
+      if(p.username){
+        const code=genUserCode(p.username);
+        userCodeMap[code]=p.username;
+      }
+    });
+  }
+
+  let html='';
+
+  // ── Admin Promoter Codes ──────────────────────────────
+  if(promoters&&promoters.length>0){
+    html+=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:.75rem;margin-top:.25rem">Admin Codes</div>`;
+    html+=promoters.map(p=>{
+      const pct=Math.min(100,Math.round((p.referral_count/p.threshold)*100));
+      const unlocked=p.referral_count>=p.threshold;
+      return `<div style="background:var(--bg2);border:1px solid ${unlocked?'var(--orange-b)':'var(--border)'};padding:1.1rem 1.25rem;border-radius:var(--r);margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.65rem">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-bottom:.4rem">
+              <div style="font-family:var(--font-d);font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em">${p.name}</div>
+              <span style="font-family:var(--font-d);font-size:.72rem;font-weight:700;letter-spacing:.12em;background:var(--bg3);padding:2px 8px;border-radius:3px;color:var(--orange);border:1px solid var(--orange-b)">${p.code}</span>
+              ${unlocked?'<span style="font-size:.65rem;background:rgba(74,158,106,.1);color:#9fd4b1;border:1px solid rgba(74,158,106,.2);padding:2px 7px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em">PRO UNLOCKED</span>':''}
+            </div>
+            <div style="font-size:.78rem;color:var(--text2);font-weight:300;margin-bottom:.5rem">${p.referral_count} of ${p.threshold} referrals needed</div>
+            <div style="background:var(--bg4);border-radius:2px;height:4px;overflow:hidden;max-width:200px">
+              <div style="height:100%;width:${pct}%;background:${unlocked?'var(--green)':'var(--orange)'};border-radius:2px"></div>
+            </div>
           </div>
-          <div style="margin-top:.55rem;background:var(--bg4);border-radius:2px;height:4px;overflow:hidden;max-width:240px">
-            <div style="height:100%;width:${pct}%;background:${unlocked?'var(--green)':'var(--orange)'};border-radius:2px;transition:width .4s"></div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="btn-outline btn-sm" onclick="copyCode('${p.code}')" style="font-size:.7rem">Copy</button>
+            ${!unlocked?`<button class="btn btn-sm btn-success" onclick="manuallyGrantPro('${p.id}',this)" style="font-size:.7rem">Grant Pro</button>`:''}
+            <button class="btn-outline btn-sm btn-danger" onclick="deletePromoter('${p.id}',this)" style="font-size:.7rem">Delete</button>
           </div>
         </div>
-        <div style="display:flex;gap:.45rem;flex-wrap:wrap">
-          <button class="btn-outline btn-sm" onclick="copyCode('${p.code}')" style="font-size:.72rem">Copy Code</button>
-          ${!unlocked?`<button class="btn btn-sm btn-success" onclick="manuallyGrantPro('${p.id}',this)" style="font-size:.72rem">Grant Pro</button>`:''}
-          <button class="btn-outline btn-sm btn-danger" onclick="deletePromoter('${p.id}',this)" style="font-size:.72rem">Delete</button>
+      </div>`;
+    }).join('');
+  }
+
+  // ── User Referral Codes ───────────────────────────────
+  // Get all codes that have at least 1 referral
+  const activeCodes=Object.keys(userRefCounts).filter(code=>userRefCounts[code].length>0);
+
+  html+=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:.75rem;margin-top:1.5rem">User Referrals <span style="font-size:.55rem;background:var(--bg3);padding:1px 6px;border-radius:3px;color:var(--orange)">${activeCodes.length} active</span></div>`;
+
+  if(activeCodes.length===0){
+    html+='<p style="font-size:.82rem;color:var(--text3);font-weight:300">No user referrals yet.</p>';
+  } else {
+    // Sort by most referrals
+    activeCodes.sort((a,b)=>userRefCounts[b].length-userRefCounts[a].length);
+    html+=activeCodes.map(code=>{
+      const refs=userRefCounts[code];
+      const username=userCodeMap[code]||'Unknown';
+      const latest=refs.sort((a,b)=>new Date(b.date)-new Date(a.date));
+      return `<div style="background:var(--bg2);border:1px solid var(--border);padding:1rem 1.25rem;border-radius:var(--r);margin-bottom:.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap;margin-bottom:.3rem">
+              <div style="font-size:.88rem;font-weight:600;color:var(--text);cursor:pointer" onclick="loadProfile('${username}')">@${username}</div>
+              <span style="font-family:var(--font-d);font-size:.68rem;font-weight:700;letter-spacing:.1em;background:var(--bg3);padding:2px 7px;border-radius:3px;color:var(--text2);border:1px solid var(--border2)">${code}</span>
+            </div>
+            <div style="font-size:.75rem;color:var(--text2);font-weight:300">
+              <span style="font-family:var(--font-d);font-size:.95rem;font-weight:800;color:var(--orange)">${refs.length}</span> sign-up${refs.length!==1?'s':''} · Last: ${timeAgo(latest[0].date)}
+            </div>
+            <div style="margin-top:.4rem;display:flex;flex-wrap:wrap;gap:4px">
+              ${latest.slice(0,5).map(r=>`<span style="font-size:.65rem;color:var(--text3);background:var(--bg3);padding:1px 6px;border-radius:3px">${profileMap[r.userId]?'@'+profileMap[r.userId]:r.userId.substring(0,8)} · ${timeAgo(r.date)}</span>`).join('')}
+              ${refs.length>5?`<span style="font-size:.65rem;color:var(--text3)">+${refs.length-5} more</span>`:''}
+            </div>
+          </div>
+          <div style="font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--orange);flex-shrink:0">${refs.length}</div>
         </div>
-      </div>
-    </div>`;
-  }).join('');
+      </div>`;
+    }).join('');
+  }
+
+  // ── Summary stats ─────────────────────────────────────
+  const totalUserRefs=userReferrals?userReferrals.length:0;
+  const totalAdminRefs=promoters?promoters.reduce((s,p)=>s+p.referral_count,0):0;
+  html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:1.25rem">
+    <div style="background:var(--bg2);padding:.85rem;text-align:center"><div style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--orange)">${totalUserRefs+totalAdminRefs}</div><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:2px">Total Referrals</div></div>
+    <div style="background:var(--bg2);padding:.85rem;text-align:center;border-left:1px solid var(--border)"><div style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--text)">${activeCodes.length}</div><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:2px">Active Users</div></div>
+    <div style="background:var(--bg2);padding:.85rem;text-align:center;border-left:1px solid var(--border)"><div style="font-family:var(--font-d);font-size:1.6rem;font-weight:800;color:var(--text)">${promoters?promoters.length:0}</div><div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-top:2px">Admin Codes</div></div>
+  </div>`+html;
+
+  el.innerHTML=html;
 }
 
 function copyCode(code){
