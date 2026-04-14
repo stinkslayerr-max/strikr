@@ -1421,31 +1421,80 @@ async function checkProStatus(){
 })();
 
 // ===== FEED =====
+var _feedOffset=0,_feedLoading=false,_feedDone=false,_feedTab='all';
+const FEED_PAGE=10;
+
 async function loadFeed(tab){
-  currentFeedTab=tab;
+  currentFeedTab=tab;_feedTab=tab;_feedOffset=0;_feedDone=false;
   const c=document.getElementById('feedContainer');
-  // Show skeleton while loading
   c.innerHTML='<div class="skeleton sk-card"></div><div class="skeleton sk-card"></div><div class="skeleton sk-card"></div>';
-  let q=sb.from('catches').select('*').order('created_at',{ascending:false}).limit(30);
+  await _fetchFeedPage(tab,0,true);
+}
+
+async function _fetchFeedPage(tab,offset,replace){
+  if(_feedLoading||_feedDone)return;
+  _feedLoading=true;
+  const c=document.getElementById('feedContainer');
+
+  let q=sb.from('catches').select('*').order('created_at',{ascending:false}).range(offset,offset+FEED_PAGE-1);
   if(tab==='tournament')q=q.eq('tournament_entry',true);
   if(tab==='following'){
-    if(!currentUser){c.innerHTML='<div class="empty-state"><p>Log in to see your following feed.</p></div>';return;}
+    if(!currentUser){c.innerHTML='<div class="empty-state"><p>Log in to see your following feed.</p></div>';_feedLoading=false;return;}
     const{data:f}=await sb.from('follows').select('following_id').eq('follower_id',currentUser.id);
-    if(!f||f.length===0){c.innerHTML='<div class="empty-state"><p>You\'re not following anyone yet.</p></div>';return;}
-    q=sb.from('catches').select('*').in('user_id',f.map(x=>x.following_id)).order('created_at',{ascending:false}).limit(30);
+    if(!f||f.length===0){c.innerHTML='<div class="empty-state"><p>You\'re not following anyone yet. Find anglers to follow!</p></div>';_feedLoading=false;return;}
+    q=sb.from('catches').select('*').in('user_id',f.map(x=>x.following_id)).order('created_at',{ascending:false}).range(offset,offset+FEED_PAGE-1);
   }
+
   const{data:catches,error}=await q;
-  if(error||!catches||catches.length===0){c.innerHTML=error?'<div class="empty-state"><p>Could not load feed.</p></div>':'<div class="empty-state"><p>No catches yet — be the first to log one!</p></div>';return;}
-  // Pre-fetch avatars for users in this batch
+  _feedLoading=false;
+
+  if(error||!catches||catches.length===0){
+    if(replace)c.innerHTML='<div class="empty-state"><p>No catches yet — be the first to log one!</p></div>';
+    _feedDone=true;
+    // Remove load more btn
+    const lb=document.getElementById('load-more-btn');if(lb)lb.remove();
+    return;
+  }
+
+  if(catches.length<FEED_PAGE)_feedDone=true;
+
+  // Pre-fetch avatars
   const usernames=[...new Set(catches.map(x=>x.username).filter(Boolean))];
-  const uncached=usernames.filter(u=>!avatarCache[u]);
+  const uncached=usernames.filter(u=>avatarCache[u]===undefined);
   if(uncached.length>0){
     const{data:profiles}=await sb.from('profiles').select('username,avatar_url').in('username',uncached);
     if(profiles)profiles.forEach(p=>{avatarCache[p.username]=p.avatar_url||null;});
   }
-  c.innerHTML=catches.map(x=>catchCardHTML(x)).join('');
+
+  const html=catches.map(x=>catchCardHTML(x)).join('');
+
+  if(replace){
+    c.innerHTML=html;
+  } else {
+    const lb=document.getElementById('load-more-btn');
+    if(lb)lb.remove();
+    c.insertAdjacentHTML('beforeend',html);
+  }
+
   attachLikeHandlers();
+
+  // Add load more button if more pages
+  if(!_feedDone){
+    const btn=document.createElement('div');
+    btn.id='load-more-btn';
+    btn.style.cssText='text-align:center;padding:1.25rem 0';
+    btn.innerHTML='<button class="btn-outline" onclick="_loadMoreFeed()" style="padding:.5rem 2rem;font-size:.82rem">Load More</button>';
+    c.appendChild(btn);
+  }
 }
+
+async function _loadMoreFeed(){
+  _feedOffset+=FEED_PAGE;
+  const btn=document.getElementById('load-more-btn');
+  if(btn)btn.innerHTML='<div class="spin-lg" style="width:18px;height:18px;margin:0 auto"></div>';
+  await _fetchFeedPage(_feedTab,_feedOffset,false);
+}
+
 
 async function loadMyCatches(){
   if(!currentUser)return;
