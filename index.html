@@ -1100,6 +1100,29 @@ img{decoding:async}
         Log Out
       </button>
     </div>
+
+    <!-- Admin section — only shown for admin account -->
+    <div id="more-menu-admin" style="display:none;border-top:1px solid var(--orange-b);margin-top:.75rem;padding-top:.75rem">
+      <div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:.65rem">Admin</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+        <button onclick="showPanel('dashboard');closeMoreMenu()" style="background:rgba(232,98,26,.08);border:1px solid var(--orange-b);border-radius:var(--r);padding:.75rem .5rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          Dashboard
+        </button>
+        <button onclick="showPanel('admin');closeMoreMenu()" style="background:rgba(232,98,26,.08);border:1px solid var(--orange-b);border-radius:var(--r);padding:.75rem .5rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          Tournaments
+        </button>
+        <button onclick="showPanel('catchmgr');closeMoreMenu()" style="background:rgba(232,98,26,.08);border:1px solid var(--orange-b);border-radius:var(--r);padding:.75rem .5rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+          Catches
+        </button>
+        <button onclick="showPanel('modqueue');closeMoreMenu()" style="background:rgba(232,98,26,.08);border:1px solid var(--orange-b);border-radius:var(--r);padding:.75rem .5rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Mod Queue
+        </button>
+      </div>
+    </div>
   </div>
   <!-- BACKDROP -->
   <div id="more-backdrop" onclick="closeMoreMenu()" style="display:none;position:fixed;inset:0;z-index:199;background:rgba(0,0,0,.5)"></div>
@@ -1488,6 +1511,9 @@ async function doLogin(user){
   document.getElementById('mod-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('catchmgr-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('promoter-nav-item').style.display=isAdmin?'':'none';
+  // Show admin section in mobile more menu
+  const moreAdmin=document.getElementById('more-menu-admin');
+  if(moreAdmin)moreAdmin.style.display=isAdmin?'block':'none';
 }
 
 // ===== AUTH =====
