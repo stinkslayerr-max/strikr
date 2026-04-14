@@ -220,7 +220,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .cc-act{flex:1;padding:.5rem;display:flex;align-items:center;justify-content:center;gap:5px;font-family:var(--font-d);font-size:.66rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);cursor:pointer;border:none;background:none;transition:all .15s;border-right:1px solid var(--border)}
 .cc-act:last-child{border-right:none}
 .cc-act:hover{background:var(--bg3);color:var(--text)}
-.cc-act.liked{color:var(--orange)}
+.cc-act.liked{color:var(--orange)}.cc-act.liked svg path{fill:var(--orange);stroke:var(--orange)}
 .cc-act svg{width:13px;height:13px}
 .empty-state{text-align:center;padding:3rem 1rem;color:var(--text3)}
 .empty-state p{font-size:.82rem;font-weight:300;line-height:1.6}
@@ -1201,6 +1201,22 @@ img{decoding:async}
   </div>
 </div>
 
+<!-- REPORT MODAL -->
+<div class="modal-ov" id="report-modal">
+  <div class="modal" style="max-width:360px">
+    <button class="modal-x" onclick="closeModal()">✕</button>
+    <h3>Report Catch</h3>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:1rem;font-weight:300">Why are you reporting this catch?</p>
+    <div style="display:flex;flex-direction:column;gap:.45rem">
+      <button class="btn-outline" onclick="submitReport('Inappropriate photo')" style="text-align:left;padding:.65rem .9rem;font-size:.84rem">📷 Inappropriate photo</button>
+      <button class="btn-outline" onclick="submitReport('Fake or unrealistic size')" style="text-align:left;padding:.65rem .9rem;font-size:.84rem">⚖️ Fake or unrealistic size</button>
+      <button class="btn-outline" onclick="submitReport('Wrong species')" style="text-align:left;padding:.65rem .9rem;font-size:.84rem">🐟 Wrong species</button>
+      <button class="btn-outline" onclick="submitReport('Spam or offensive content')" style="text-align:left;padding:.65rem .9rem;font-size:.84rem">🚫 Spam or offensive content</button>
+      <button class="btn-outline" onclick="submitReport('Other')" style="text-align:left;padding:.65rem .9rem;font-size:.84rem">💬 Other</button>
+    </div>
+  </div>
+</div>
+
 <!-- SHARE CARD MODAL -->
 <div class="modal-ov" id="shareCardModal">
   <div class="modal share-card-modal">
@@ -1621,6 +1637,32 @@ async function _fetchFeedPage(tab,offset,replace){
 
   attachLikeHandlers();
 
+  // Load like counts, like states and comment counts in parallel
+  const catchIds=catches.map(x=>x.id);
+  const[{data:likeCounts},{data:myLikes},{data:commentCounts}]=await Promise.all([
+    sb.from('likes').select('catch_id').in('catch_id',catchIds),
+    currentUser?sb.from('likes').select('catch_id').eq('user_id',currentUser.id).in('catch_id',catchIds):Promise.resolve({data:[]}),
+    sb.from('comments').select('catch_id').in('catch_id',catchIds)
+  ]);
+
+  // Build count maps
+  const likeMap={},myLikeSet=new Set(),commentMap={};
+  if(likeCounts)likeCounts.forEach(l=>{likeMap[l.catch_id]=(likeMap[l.catch_id]||0)+1;});
+  if(myLikes)myLikes.forEach(l=>myLikeSet.add(l.catch_id));
+  if(commentCounts)commentCounts.forEach(c=>{commentMap[c.catch_id]=(commentMap[c.catch_id]||0)+1;});
+
+  // Update cards
+  catchIds.forEach(id=>{
+    const likeBtn=document.querySelector(`.like-btn[data-catch-id="${id}"]`);
+    if(likeBtn){
+      const span=likeBtn.querySelector('span');
+      if(span)span.textContent=likeMap[id]||0;
+      if(myLikeSet.has(id)){likeBtn.classList.add('liked');likeBtn.dataset.liked=1;}
+    }
+    const countEl=document.querySelector('.comment-count-'+id);
+    if(countEl&&commentMap[id])countEl.textContent=commentMap[id]+' Comment'+(commentMap[id]!==1?'s':'');
+  });
+
   // Add load more button if more pages
   if(!_feedDone){
     const btn=document.createElement('div');
@@ -2038,15 +2080,37 @@ async function submitEntry(){
 }
 
 
-async function reportCatch(catchId,btn){
-  if(!currentUser){showPage('auth');return;}
-  const reason=prompt('Why are you reporting this catch?\n\n1. Inappropriate photo\n2. Fake or unrealistic size\n3. Wrong species\n4. Spam\n5. Other\n\nEnter reason:');
-  if(!reason)return;
-  btn.textContent='Reported';btn.style.color='var(--amber)';btn.disabled=true;
-  await sb.from('catch_reports').insert({catch_id:catchId,reported_by:currentUser.id,reason});
-  // Also flag the catch for mod review
-  await sb.from('catches').update({photo_status:'flagged',moderation_reason:'Community report: '+reason}).eq('id',catchId);
+// ===== SHARE CATCH =====
+async function shareCatch(catchId,username,species,weight,length,btn){
+  const url=`https://strikr.vercel.app#/profile/${username}`;
+  const text=`Check out this ${species||'catch'}${length?' - '+length+'cm':''}${weight?' - '+weight+'kg':''} by @${username} on Strikr 🎣`;
+  if(navigator.share){
+    try{
+      await navigator.share({title:'Strikr Catch',text,url});
+      return;
+    }catch(e){}
+  }
+  // Fallback — show options
+  const orig=btn.textContent;
+  btn.textContent='Copied!';
+  navigator.clipboard&&navigator.clipboard.writeText(url);
+  setTimeout(()=>btn.textContent=orig,2000);
+}
+
+// ===== REPORT =====
+var _reportCatchId=null;
+function reportCatch(catchId,btn){
+  _reportCatchId=catchId;
+  document.getElementById('report-modal').classList.add('open');
+}
+async function submitReport(reason){
+  if(!currentUser||!_reportCatchId)return;
+  document.getElementById('report-modal').classList.remove('open');
+  await sb.from('catch_reports').insert({catch_id:_reportCatchId,reported_by:currentUser.id,reason});
+  await sb.from('catches').update({photo_status:'flagged',moderation_reason:'Community report: '+reason}).eq('id',_reportCatchId);
   loadModCount();
+  showPhotoToast('Report submitted — thanks for keeping Strikr clean.');
+  _reportCatchId=null;
 }
 
 // ===== MOD QUEUE =====
@@ -2504,7 +2568,7 @@ function catchCardHTML(c){
   const photoEl=c.photo_data?`<img class="cc-photo" src="data:image/jpeg;base64,${c.photo_data}" alt="Catch photo" loading="lazy">`:`<div class="cc-no-photo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M20 12c0 0-4-6-8-6S4 12 4 12s4 6 8 6 8-6 8-6z"/><circle cx="12" cy="12" r="2"/></svg>${c.location||'No location'}</div>`;
   const avUrl=avatarCache[c.username];
   const avEl=avUrl?`<div class="av" onclick="loadProfile('${c.username||''}')" style="overflow:hidden;padding:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="av" onclick="loadProfile('${c.username||''}')">${(c.username||'?').substring(0,2).toUpperCase()}</div>`;
-  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act comment-toggle-btn" data-catch-id="${c.id}" onclick="toggleComments('${c.id}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="comment-count-${c.id}">Comment</span></button><button class="cc-act" onclick="openShareCard('${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div><div class="comments-box" id="comments-box-${c.id}" style="display:none"></div></div>`;
+  return `<div class="catch-card" id="catch-card-${c.id}"><div class="cc-head">${avEl}<div class="cc-user"><strong onclick="loadProfile('${c.username||''}')">${c.username||'angler'}</strong><span>${ago}</span></div>${c.species?`<span class="sp-tag">${c.species}</span>`:''} ${badge}</div>${photoEl}${(c.weight_kg||c.length_cm||c.method)?`<div class="cc-stats">${c.weight_kg?`<div class="cc-stat"><strong>${c.weight_kg}kg</strong><span>Weight</span></div>`:''}${c.length_cm?`<div class="cc-stat"><strong>${c.length_cm}cm</strong><span>Length</span></div>`:''}${c.method?`<div class="cc-stat"><strong>${c.method}</strong><span>Method</span></div>`:''}</div>`:''} ${(c.location||c.notes)?`<div class="cc-body">${c.location&&!c.photo_data?`<div class="cc-loc">📍 ${c.location}</div>`:''}${c.notes?`<div class="cc-desc">${c.notes}</div>`:''}</div>`:''}<div class="cc-actions"><button class="cc-act like-btn" data-catch-id="${c.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span>0</span></button><button class="cc-act comment-toggle-btn" data-catch-id="${c.id}" onclick="toggleComments('${c.id}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="comment-count-${c.id}">Comment</span></button><button class="cc-act" onclick="shareCatch('${c.id}','${c.username||''}','${c.species||''}','${c.weight_kg||''}','${c.length_cm||''}',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>Share</button><button class="cc-act" onclick="reportCatch('${c.id}',this)" style="color:var(--text3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>Report</button>${currentUser&&c.user_id===currentUser.id?`<button class="cc-act" onclick="deleteMyCatch('${c.id}',this)" style="color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Delete</button>`:''}</div><div class="comments-box" id="comments-box-${c.id}" style="display:none"></div></div>`;
 }
 
 function attachLikeHandlers(){
