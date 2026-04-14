@@ -1436,9 +1436,9 @@ async function handleSignup(){
   setLoading('su-btn',false,'Create Free Account');
   if(error)return showAlert('su-alert',error.message);
   if(signupData?.session){
-    // Process referral code if provided
+    // Process referral code if provided — delay to ensure user is committed
     if(refCode){
-      processReferral(refCode,signupData.session.user.id).catch(()=>{});
+      setTimeout(()=>processReferral(refCode,signupData.session.user.id),2000);
     }
     await doLogin(signupData.session.user);
   } else {
@@ -3268,16 +3268,20 @@ function downloadReferCard(code,username){
 
 // Also handle user referrals (different from admin promoter codes)
 async function processReferral(code,newUserId){
-  // Check admin promoter codes first
-  const{data:promoter}=await sb.from('promoters').select('*').eq('code',code).single();
-  if(promoter){
-    await sb.from('referrals').insert({promoter_id:promoter.id,referred_user_id:newUserId,code});
-    const newCount=promoter.referral_count+1;
-    await sb.from('promoters').update({referral_count:newCount,is_pro:newCount>=promoter.threshold}).eq('id',promoter.id);
-    return;
-  }
-  // Check user referral codes
-  await sb.from('user_referrals').insert({referral_code:code,referred_user_id:newUserId}).catch(()=>{});
+  try{
+    // Check admin promoter codes first
+    const{data:promoter}=await sb.from('promoters').select('*').eq('code',code).single();
+    if(promoter){
+      await sb.from('referrals').insert({promoter_id:promoter.id,referred_user_id:newUserId,code});
+      const newCount=promoter.referral_count+1;
+      await sb.from('promoters').update({referral_count:newCount,is_pro:newCount>=promoter.threshold}).eq('id',promoter.id);
+      return;
+    }
+    // User referral code — store without FK constraint
+    const{error}=await sb.from('user_referrals').insert({referral_code:code,referred_user_id:newUserId});
+    if(error)console.error('Referral insert error:',error.message,error.code);
+    else console.log('Referral saved successfully for code:',code);
+  }catch(e){console.error('processReferral error:',e);}
 }
 
 // ===== CONDITIONS =====
