@@ -429,6 +429,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .social-type-btn:hover{border-color:var(--orange-b);color:var(--text)}
 .social-type-btn.active{background:rgba(232,98,26,.08);border-color:var(--orange-b);color:var(--orange)}
 .sponsored-strip{background:rgba(74,158,106,.08);border:1px solid rgba(74,158,106,.2);border-radius:var(--r);padding:.5rem .85rem;font-size:.76rem;color:#9fd4b1;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
+.activity-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;display:flex;align-items:center;gap:.85rem}
+.activity-card-photo{width:52px;height:52px;border-radius:6px;object-fit:cover;flex-shrink:0;background:var(--bg3)}
+.activity-card-info{flex:1;min-width:0}
+.activity-card-title{font-size:.84rem;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.activity-card-sub{font-size:.72rem;color:var(--text3);font-weight:300;margin-top:2px}
 /* INSTALL BANNER */
 .install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
 .install-banner.show{display:flex}
@@ -654,10 +659,10 @@ img{decoding:async}
         <button class="btn-outline" style="padding:.7rem 2.2rem;font-size:.88rem" onclick="showPage('auth');switchTab('login')">Log In</button>
       </div>
       <div class="hero-stats">
-        <div class="hs-item"><div class="hs-n">Free</div><div class="hs-l">for everyone now</div></div>
-        <div class="hs-item"><div class="hs-n">21</div><div class="hs-l">day opening comp</div></div>
-        <div class="hs-item"><div class="hs-n">100</div><div class="hs-l">founding member badges</div></div>
-        <div class="hs-item"><div class="hs-n">🏆</div><div class="hs-l">longest fish wins</div></div>
+        <div class="hs-item"><div class="hs-n" id="hs-anglers">—</div><div class="hs-l">anglers joined</div></div>
+        <div class="hs-item"><div class="hs-n" id="hs-catches">—</div><div class="hs-l">catches logged</div></div>
+        <div class="hs-item"><div class="hs-n" id="hs-prize">$—</div><div class="hs-l">prize pool live</div></div>
+        <div class="hs-item"><div class="hs-n">🆓</div><div class="hs-l">free to join</div></div>
       </div>
     </div>
   </section>
@@ -764,6 +769,41 @@ img{decoding:async}
     </div>
   </div>
 
+  <!-- RECENT ACTIVITY -->
+  <div class="divider"></div>
+  <div class="section">
+    <div class="sec-eyebrow">Live Activity</div>
+    <div class="sec-h">Anglers are<br>logging right now.</div>
+    <div id="landing-activity" style="margin-top:2rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;max-width:900px;margin-left:auto;margin-right:auto">
+      <div class="spin-lg" style="margin:1rem auto;grid-column:1/-1"></div>
+    </div>
+    <div style="text-align:center;margin-top:1.75rem">
+      <button class="btn" onclick="showPage('auth');switchTab('signup')" style="padding:.65rem 2.5rem;font-size:.9rem">Join Them — Free</button>
+    </div>
+  </div>
+
+  <!-- FOUNDING MEMBER URGENCY -->
+  <div class="divider"></div>
+  <div class="section" style="max-width:600px;margin-left:auto;margin-right:auto;text-align:center">
+    <div class="sec-eyebrow">Founding Members</div>
+    <div class="sec-h" style="font-size:clamp(1.8rem,5vw,2.8rem)">Only 100 spots.<br>Permanent badge.</div>
+    <p style="color:var(--text2);font-size:.9rem;font-weight:300;line-height:1.7;margin-bottom:1.5rem">The first 100 anglers to join get a permanent Founding Member badge on their profile — forever. After that, it's gone.</p>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1.5rem">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.6rem">
+        <span style="font-family:var(--font-d);font-size:.65rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--text3)">Spots Taken</span>
+        <span style="font-family:var(--font-d);font-size:1.1rem;font-weight:800;color:var(--orange)" id="fm-count">—</span>
+      </div>
+      <div style="background:var(--bg3);border-radius:99px;height:10px;overflow:hidden">
+        <div id="fm-bar" style="height:100%;background:linear-gradient(90deg,var(--orange),#f4922a);border-radius:99px;transition:width .6s ease;width:0%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:.4rem">
+        <span style="font-size:.72rem;color:var(--text3);font-weight:300">0</span>
+        <span style="font-size:.72rem;color:var(--text3);font-weight:300">100 spots</span>
+      </div>
+    </div>
+    <button class="btn btn-full" onclick="showPage('auth');switchTab('signup')" style="padding:.75rem;font-size:.92rem">Claim Your Spot — Free</button>
+  </div>
+
   <footer style="background:var(--bg2);border-top:1px solid var(--border);padding:2rem 1.75rem;text-align:center;color:var(--text3);font-size:.74rem">
     <div style="display:flex;align-items:center;justify-content:center;gap:.38rem;margin-bottom:.75rem">
       <div style="width:6px;height:6px;border-radius:50%;background:var(--orange)"></div>
@@ -777,6 +817,15 @@ img{decoding:async}
     </div>
     © 2025 Strikr · Log. Catch. Win.
   </footer>
+  <!-- Sticky mobile CTA -->
+  <div id="landing-sticky-cta" style="position:fixed;bottom:0;left:0;right:0;z-index:90;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem calc(.85rem + env(safe-area-inset-bottom));display:flex;align-items:center;gap:.75rem;box-shadow:0 -4px 24px rgba(0,0,0,.5)">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-d);font-size:.78rem;font-weight:700;color:var(--text)">Join Strikr Free</div>
+      <div style="font-size:.7rem;color:var(--text3);font-weight:300">Log catches · Compete · Win prizes</div>
+    </div>
+    <button class="btn" onclick="showPage('auth');switchTab('signup')" style="flex-shrink:0;padding:.55rem 1.25rem;font-size:.84rem">Get Started</button>
+    <button onclick="document.getElementById('landing-sticky-cta').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:1.1rem;cursor:pointer;padding:0;flex-shrink:0">✕</button>
+  </div>
 </div>
 
 <!-- AUTH -->
@@ -1534,6 +1583,7 @@ var avatarCache={}; // username -> avatar_url
     showPage('landing');
   }
   loadLandingLeaderboard();
+  loadLandingStats();
   if(window.location.hash.startsWith('#/profile/')){
     const u=window.location.hash.replace('#/profile/','');
     if(u)loadProfile(u);
@@ -1544,6 +1594,50 @@ sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='SIGNED_IN'&&session)await doLogin(session.user);
   if(event==='SIGNED_OUT'){currentUser=null;updateNav(null);showPage('landing');}
 });
+
+async function loadLandingStats(){
+  try{
+    const[{count:users},{count:catches},{data:tourns}]=await Promise.all([
+      sb.from('profiles').select('*',{count:'exact',head:true}),
+      sb.from('catches').select('*',{count:'exact',head:true}).eq('verified',true),
+      sb.from('tournaments').select('prize_pool').eq('status','active')
+    ]);
+    const prize=tourns?tourns.reduce((s,t)=>s+Number(t.prize_pool||0),0):0;
+    const uEl=document.getElementById('hs-anglers');
+    const cEl=document.getElementById('hs-catches');
+    const pEl=document.getElementById('hs-prize');
+    if(uEl)uEl.textContent=users?users.toLocaleString():'0';
+    if(cEl)cEl.textContent=catches?catches.toLocaleString():'0';
+    if(pEl)pEl.textContent='$'+(prize?prize.toLocaleString():'0');
+    // Founding member bar
+    const fmCount=document.getElementById('fm-count');
+    const fmBar=document.getElementById('fm-bar');
+    if(fmCount&&users!=null){
+      const taken=Math.min(users,100);
+      fmCount.textContent=taken+' / 100';
+      if(fmBar)fmBar.style.width=Math.min(100,taken)+'%';
+    }
+    // Recent activity
+    const{data:recent}=await sb.from('catches').select('username,species,weight_kg,length_cm,location,photo_data,created_at').eq('verified',true).order('created_at',{ascending:false}).limit(6);
+    const actEl=document.getElementById('landing-activity');
+    if(actEl&&recent&&recent.length){
+      actEl.innerHTML=recent.map(c=>{
+        const stat=c.weight_kg?c.weight_kg+'kg':c.length_cm?c.length_cm+'cm':'';
+        const ago=_timeAgo(c.created_at);
+        const photo=c.photo_data?`<img class="activity-card-photo" src="data:image/jpeg;base64,${c.photo_data}">`:`<div class="activity-card-photo" style="display:flex;align-items:center;justify-content:center;font-size:1.4rem">🎣</div>`;
+        return`<div class="activity-card">${photo}<div class="activity-card-info"><div class="activity-card-title">@${c.username} — ${c.species||'Fish'}${stat?' · '+stat:''}</div><div class="activity-card-sub">${c.location||'Australia'} · ${ago}</div></div></div>`;
+      }).join('');
+    } else if(actEl){
+      actEl.innerHTML='<p style="text-align:center;color:var(--text3);font-size:.84rem;font-weight:300;grid-column:1/-1">Be the first to log a catch.</p>';
+    }
+  }catch(e){}
+}
+
+function _timeAgo(ts){
+  const s=Math.floor((Date.now()-new Date(ts))/1000);
+  if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';
+}
 
 async function loadLandingLeaderboard(){
   const el=document.getElementById('landing-lb');
@@ -1615,6 +1709,8 @@ async function doLogin(user){
   document.getElementById('promoter-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('catchmap-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('social-nav-item').style.display=isAdmin?'':'none';
+  const stickyCta=document.getElementById('landing-sticky-cta');
+  if(stickyCta)stickyCta.style.display='none';
   // Show admin section in mobile more menu
   const moreAdmin=document.getElementById('more-menu-admin');
   if(moreAdmin)moreAdmin.style.display=isAdmin?'block':'none';
