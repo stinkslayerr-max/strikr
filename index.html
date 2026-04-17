@@ -1470,17 +1470,22 @@ var entryPhotoBase64=null,catchPhotoBase64=null;
 var avatarCache={}; // username -> avatar_url
 
 (async function(){
-  // Show splash for at least 1s while auth resolves
   const splashStart=Date.now();
-  const{data:{session}}=await sb.auth.getSession();
-  const elapsed=Date.now()-splashStart;
-  const minSplash=1200;
-  if(elapsed<minSplash)await new Promise(r=>setTimeout(r,minSplash-elapsed));
-  if(session)await doLogin(session.user);
-  else showPage('landing');
-  // Always load public leaderboard on landing
+  try{
+    const sessionPromise=sb.auth.getSession();
+    const timeout=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),5000));
+    const{data:{session}}=await Promise.race([sessionPromise,timeout]);
+    const elapsed=Date.now()-splashStart;
+    const minSplash=1200;
+    if(elapsed<minSplash)await new Promise(r=>setTimeout(r,minSplash-elapsed));
+    if(session)await doLogin(session.user);
+    else showPage('landing');
+  }catch(e){
+    const elapsed=Date.now()-splashStart;
+    if(elapsed<1200)await new Promise(r=>setTimeout(r,1200-elapsed));
+    showPage('landing');
+  }
   loadLandingLeaderboard();
-  // Check hash after auth resolves
   if(window.location.hash.startsWith('#/profile/')){
     const u=window.location.hash.replace('#/profile/','');
     if(u)loadProfile(u);
