@@ -425,6 +425,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 .gear-cat{font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:2px}
 /* SPONSORED */
 .tb-sponsored{background:rgba(74,158,106,.08);color:#9fd4b1;border:1px solid rgba(74,158,106,.18)}
+.social-type-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.6rem .75rem;font-size:.78rem;font-family:var(--font-d);font-weight:600;letter-spacing:.04em;color:var(--text2);cursor:pointer;text-align:center;transition:border-color .15s,color .15s}
+.social-type-btn:hover{border-color:var(--orange-b);color:var(--text)}
+.social-type-btn.active{background:rgba(232,98,26,.08);border-color:var(--orange-b);color:var(--orange)}
 .sponsored-strip{background:rgba(74,158,106,.08);border:1px solid rgba(74,158,106,.2);border-radius:var(--r);padding:.5rem .85rem;font-size:.76rem;color:#9fd4b1;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
 /* INSTALL BANNER */
 .install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
@@ -863,6 +866,7 @@ img{decoding:async}
         <li id="promoter-nav-item" style="display:none"><a onclick="showPanel('promoters');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Promoters</a></li>
         <li id="mod-nav-item" style="display:none"><a onclick="showPanel('modqueue');setNav(this)" id="mod-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Mod Review <span id="mod-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
         <li id="catchmap-nav-item" style="display:none"><a onclick="showPanel('catchmap');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Catch Map</a></li>
+        <li id="social-nav-item" style="display:none"><a onclick="showPanel('social');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>Social</a></li>
       </ul>
 
     </aside>
@@ -1008,6 +1012,34 @@ img{decoding:async}
         </div>
         <div id="admin-catch-map" style="height:500px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden"></div>
         <div id="catchmap-list" style="margin-top:1rem"></div>
+      </div>
+
+      <!-- SOCIAL CONTENT GENERATOR -->
+      <div id="panel-social" class="panel">
+        <div class="panel-hdr"><h2>Instagram Content</h2><span style="font-size:.75rem;color:var(--text3);font-weight:300">Generate ready-to-post captions</span></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.65rem;margin-bottom:1.25rem">
+          <button class="social-type-btn active" data-type="tournament" onclick="setSocialType(this)">🏆 Tournament Hype</button>
+          <button class="social-type-btn" data-type="leaderboard" onclick="setSocialType(this)">📊 Leaderboard</button>
+          <button class="social-type-btn" data-type="catch" onclick="setSocialType(this)">🎣 Top Catch</button>
+          <button class="social-type-btn" data-type="growth" onclick="setSocialType(this)">📈 Community Growth</button>
+          <button class="social-type-btn" data-type="engagement" onclick="setSocialType(this)">🔥 Engagement</button>
+          <button class="social-type-btn" data-type="winner" onclick="setSocialType(this)">🥇 Winner Shoutout</button>
+        </div>
+        <button class="btn" onclick="generateSocialPost()" id="social-gen-btn" style="margin-bottom:1rem;padding:.52rem 1.4rem">Generate Caption</button>
+        <div id="social-output" style="display:none">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:.75rem;position:relative">
+            <div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">CAPTION</div>
+            <div id="social-caption" style="font-size:.88rem;line-height:1.75;color:var(--text);white-space:pre-wrap"></div>
+          </div>
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:.75rem">
+            <div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">HASHTAGS</div>
+            <div id="social-tags" style="font-size:.82rem;line-height:1.9;color:var(--orange);word-break:break-word"></div>
+          </div>
+          <div style="display:flex;gap:.65rem;flex-wrap:wrap">
+            <button class="btn" onclick="copySocialPost()" style="padding:.52rem 1.2rem">Copy Full Post</button>
+            <button class="btn-outline" onclick="generateSocialPost()" style="padding:.52rem 1.2rem">Regenerate</button>
+          </div>
+        </div>
       </div>
 
       <!-- CONDITIONS -->
@@ -1567,6 +1599,7 @@ async function doLogin(user){
   document.getElementById('catchmgr-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('promoter-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('catchmap-nav-item').style.display=isAdmin?'':'none';
+  document.getElementById('social-nav-item').style.display=isAdmin?'':'none';
   // Show admin section in mobile more menu
   const moreAdmin=document.getElementById('more-menu-admin');
   if(moreAdmin)moreAdmin.style.display=isAdmin?'block':'none';
@@ -3383,7 +3416,7 @@ function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/prof
 window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
-function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));if(n)document.getElementById('panel-'+n)?.classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();if(n==='promoters')loadPromoters();if(n==='refer')loadReferPanel();if(n==='notifications'){loadNotifications();markAllRead();}if(n==='dashboard')loadDashboard();if(n==='catchmap')loadCatchMap();if(n==='conditions'){}}
+function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));if(n)document.getElementById('panel-'+n)?.classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();if(n==='promoters')loadPromoters();if(n==='refer')loadReferPanel();if(n==='notifications'){loadNotifications();markAllRead();}if(n==='dashboard')loadDashboard();if(n==='catchmap')loadCatchMap();if(n==='social'){document.getElementById('social-output').style.display='none';}if(n==='conditions'){}}
 
 // ===== DASHBOARD =====
 async function loadDashboard(){
@@ -4374,6 +4407,177 @@ function filterCatchMap(status,btn){
   else if(status==='approved')filtered=filtered.filter(e=>e.verified);
   else if(status==='rejected')filtered=filtered.filter(e=>e.verification_status==='rejected');
   renderCatchMapEntries(filtered);
+}
+
+// ===== SOCIAL CONTENT GENERATOR =====
+var _socialType='tournament';
+
+function setSocialType(btn){
+  document.querySelectorAll('.social-type-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  _socialType=btn.dataset.type;
+  document.getElementById('social-output').style.display='none';
+}
+
+async function generateSocialPost(){
+  setLoading('social-gen-btn',true,'Generate Caption');
+  const out=document.getElementById('social-output');
+  out.style.display='none';
+
+  try{
+    let caption='',tags='';
+    const base='#fishing #australianfishing #fishingaustralia #strikr #fishingapp #anglersofinstagram #fishinggram #catchandrelease #fishinglife #fishingcommunity';
+
+    if(_socialType==='tournament'){
+      const{data:tourns}=await sb.from('tournaments').select('*').eq('status','active').order('created_at',{ascending:false}).limit(3);
+      if(tourns&&tourns.length){
+        const t=tourns[0];
+        const{count}=await sb.from('tournament_entries').select('*',{count:'exact',head:true}).eq('tournament_id',t.id).eq('verified',true);
+        const daysLeft=t.ends_at&&!t.ends_at.startsWith('2099')?Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000)):null;
+        const timeStr=daysLeft===null?'ongoing':daysLeft===0?'ending today':`${daysLeft} day${daysLeft===1?'':'s'} left`;
+        const variants=[
+`🎣 THE COMPETITION IS LIVE 🎣
+
+${t.name.toUpperCase()} is now open on Strikr — and the leaderboard is heating up.
+
+💰 $${Number(t.prize_pool).toLocaleString()} prize pool
+🐟 ${count||0} verified entries so far
+⏱️ ${timeStr}
+
+Download Strikr, log your catch, and get on the board. Top anglers only. 🏆
+
+Link in bio 👆`,
+`DROP EVERYTHING.
+
+${t.name} is LIVE on Strikr with $${Number(t.prize_pool).toLocaleString()} on the line 💰
+
+Think you've got what it takes? Log your catch on the app, get it verified, and climb the leaderboard. ${count?`${count} anglers already in.`:'Be the first on the board.'}
+
+This is Australian fishing. Real anglers. Real prizes. 🎣
+
+#strikr link in bio`
+        ];
+        caption=variants[Math.floor(Math.random()*variants.length)];
+        tags=`${base} #fishingcompetition #fishingtournament #${(t.species||'fishing').toLowerCase().replace(/\s/g,'')} #prizefishing #winmoney`;
+      } else {
+        caption=`🎣 Big things coming on Strikr — Australia's fishing community app.\n\nLog your catches, climb the leaderboard, and compete for real cash prizes.\n\nDownload free. Link in bio 👆`;
+        tags=base;
+      }
+    }
+
+    else if(_socialType==='leaderboard'){
+      const{data:tourns}=await sb.from('tournaments').select('*').eq('status','active').limit(1);
+      if(tourns&&tourns.length){
+        const t=tourns[0];
+        const entries=await getLeaderboardEntries(t.id,t.metric||'weight');
+        const top3=entries.slice(0,3);
+        const metricLabel=t.metric==='count'?'fish caught':t.metric==='length'?'cm':'kg';
+        const metricVal=e=>t.metric==='count'?e.count:t.metric==='length'?e.length_cm:e.weight_kg;
+        let board=top3.map((e,i)=>`${['🥇','🥈','🥉'][i]} @${e.username}${metricVal(e)?' — '+metricVal(e)+metricLabel':''}`).join('\n');
+        caption=`🏆 ${t.name.toUpperCase()} — LEADERBOARD UPDATE\n\n${board||'No entries yet — be the first!'}\n\nThink you can do better? Log your catch on Strikr and take the top spot 👆\n\nLink in bio`;
+        tags=`${base} #leaderboard #fishingcompetition #topangler #fishingaustralia`;
+      } else {
+        caption=`🏆 Strikr competitions are heating up.\n\nJoin Australia's best fishing app — log catches, verify your fish, and compete for prizes.\n\nFree to join. Link in bio 👆`;
+        tags=base;
+      }
+    }
+
+    else if(_socialType==='catch'){
+      const{data:catches}=await sb.from('catches').select('*').eq('verified',true).order('created_at',{ascending:false}).limit(20);
+      if(catches&&catches.length){
+        const c=catches[Math.floor(Math.random()*Math.min(catches.length,10))];
+        const stat=c.weight_kg?`${c.weight_kg}kg`:c.length_cm?`${c.length_cm}cm`:'';
+        caption=`🎣 CATCH OF THE DAY on Strikr\n\n@${c.username} just landed ${c.species?'a '+c.species:'a cracker'}${stat?' weighing in at '+stat:''}${c.location?' out at '+c.location:''}. 🔥\n\nThis is what Strikr is about — real anglers, real catches, verified on the water.\n\nLog your catches and show the community what you've got.\n\nLink in bio 👆`;
+        tags=`${base} #${(c.species||'fishing').toLowerCase().replace(/\s/g,'')} #catchoftheday #fishing #bigfish`;
+      } else {
+        caption=`🎣 Every catch tells a story.\n\nStrikr is where Australian anglers log, share, and compete. Real catches. Real community.\n\nDownload free — link in bio 👆`;
+        tags=base;
+      }
+    }
+
+    else if(_socialType==='growth'){
+      const{count:users}=await sb.from('profiles').select('*',{count:'exact',head:true});
+      const{count:catches}=await sb.from('catches').select('*',{count:'exact',head:true}).eq('verified',true);
+      const variants=[
+`🇦🇺 ${users?users.toLocaleString()+' Australian anglers':'A growing community'} have joined Strikr.
+
+${catches?catches.toLocaleString()+' verified catches':''} logged. Competitions running. Community growing.
+
+If you fish in Australia and you're not on Strikr — what are you doing? 😅
+
+Free to join. Real prizes. Link in bio 👆`,
+`The Strikr community is growing FAST 📈
+
+${users?'Over '+users.toLocaleString()+' anglers':''} ${catches?'and '+catches.toLocaleString()+' catches':''} logged across Australia.
+
+Join the app that's changing how Australians fish, compete, and connect.
+
+Link in bio 🎣`
+      ];
+      caption=variants[Math.floor(Math.random()*variants.length)];
+      tags=`${base} #australianangler #fishingcommunity #fishingapp`;
+    }
+
+    else if(_socialType==='engagement'){
+      const questions=[
+`DROP A 🎣 if you've caught a fish this week.
+
+What species are you targeting right now? Let us know in the comments 👇
+
+(Bonus points if you've logged it on Strikr 😏)`,
+`Hot take: ______ is the best fishing spot in Australia.
+
+Fill in the blank 👇
+
+We'll feature the best answer on our story! 🎣`,
+`Debate time 🔥
+
+WEIGHT vs LENGTH — which should decide a fishing comp winner?
+
+Comment below and we'll see what the community thinks 👇`,
+`What's the best catch you've ever made? 🎣
+
+Drop the species + weight/length in the comments 👇
+
+The most impressive answer wins a shoutout on our next post 🏆`
+      ];
+      caption=questions[Math.floor(Math.random()*questions.length)];
+      tags=`${base} #fishingquestion #fishingcommunity`;
+    }
+
+    else if(_socialType==='winner'){
+      const{data:tourns}=await sb.from('tournaments').select('*').in('status',['active','completed']).order('ends_at',{ascending:false}).limit(5);
+      if(tourns&&tourns.length){
+        const t=tourns[0];
+        const entries=await getLeaderboardEntries(t.id,t.metric||'weight');
+        if(entries&&entries.length){
+          const w=entries[0];
+          const metricVal=t.metric==='count'?w.count+' fish caught':t.metric==='length'?w.length_cm+'cm':w.weight_kg+'kg';
+          caption=`🥇 CONGRATULATIONS @${w.username}! 🥇\n\nTaking the lead in ${t.name} with ${metricVal}.\n\nThis is the standard. Can anyone beat it? 👀\n\nLog your catch on Strikr and take the crown 👑\n\nLink in bio 🎣`;
+        } else {
+          caption=`🏆 ${t.name} is live — no one's taken the lead yet.\n\nFirst angler to log a verified catch gets the top spot.\n\nCould be you. Download Strikr. Link in bio 🎣`;
+        }
+      } else {
+        caption=`🥇 Strikr competitions are where legends are made.\n\nJoin free, log your catches, and compete for real prizes.\n\nLink in bio 🎣`;
+      }
+      tags=`${base} #winner #fishingcompetition #topangler #congratulations`;
+    }
+
+    document.getElementById('social-caption').textContent=caption;
+    document.getElementById('social-tags').textContent=tags;
+    out.style.display='block';
+  }catch(e){
+    document.getElementById('social-caption').textContent='Could not load live data — check your connection.';
+    document.getElementById('social-tags').textContent='';
+    out.style.display='block';
+  }
+  setLoading('social-gen-btn',false,'Generate Caption');
+}
+
+function copySocialPost(){
+  const caption=document.getElementById('social-caption').textContent;
+  const tags=document.getElementById('social-tags').textContent;
+  navigator.clipboard.writeText(caption+'\n\n'+tags).then(()=>showPhotoToast('Copied to clipboard ✓'));
 }
 
 // ===== SPONSORED COMP TOGGLE =====
