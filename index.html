@@ -4473,7 +4473,7 @@ This is Australian fishing. Real anglers. Real prizes. 🎣
         const top3=entries.slice(0,3);
         const metricLabel=t.metric==='count'?'fish caught':t.metric==='length'?'cm':'kg';
         const metricVal=e=>t.metric==='count'?e.count:t.metric==='length'?e.length_cm:e.weight_kg;
-        let board=top3.map((e,i)=>`${['🥇','🥈','🥉'][i]} @${e.username}${metricVal(e)?' — '+metricVal(e)+metricLabel':''}`).join('\n');
+        let board=top3.map((e,i)=>`${['🥇','🥈','🥉'][i]} @${e.username}${metricVal(e)?' — '+metricVal(e)+' '+metricLabel:''}`).join('\n');
         caption=`🏆 ${t.name.toUpperCase()} — LEADERBOARD UPDATE\n\n${board||'No entries yet — be the first!'}\n\nThink you can do better? Log your catch on Strikr and take the top spot 👆\n\nLink in bio`;
         tags=`${base} #leaderboard #fishingcompetition #topangler #fishingaustralia`;
       } else {
