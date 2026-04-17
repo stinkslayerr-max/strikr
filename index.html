@@ -412,6 +412,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;ali
 @media(max-width:580px){.f-grid,.af-grid{grid-template-columns:1fr}.hero-stats{flex-direction:column}.split-row{grid-template-columns:1fr}.panel-hdr h2{font-size:1.2rem}.t-stats{gap:.85rem}}
 @media(max-width:900px){#page-profile{padding-bottom:70px;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;z-index:200;background:var(--bg)}}
 
+/* SPLASH */
+#page-splash{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg)}
+.splash-logo{display:flex;align-items:center;gap:.6rem;animation:fu .4s ease}
+.splash-spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--orange);border-radius:50%;animation:rot .8s linear infinite;margin-top:2.5rem}
+/* TACKLE BAG */
+.gear-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:.85rem 1rem;display:flex;align-items:center;gap:.85rem;margin-bottom:.5rem}
+.gear-icon{font-size:1.4rem;flex-shrink:0}
+.gear-info{flex:1}
+.gear-name{font-size:.88rem;font-weight:500;color:var(--text)}
+.gear-cat{font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text3);margin-top:2px}
+/* SPONSORED */
+.tb-sponsored{background:rgba(74,158,106,.08);color:#9fd4b1;border:1px solid rgba(74,158,106,.18)}
+.sponsored-strip{background:rgba(74,158,106,.08);border:1px solid rgba(74,158,106,.2);border-radius:var(--r);padding:.5rem .85rem;font-size:.76rem;color:#9fd4b1;margin-bottom:.85rem;display:flex;align-items:center;gap:.5rem}
 /* INSTALL BANNER */
 .install-banner{position:fixed;bottom:0;left:0;right:0;z-index:500;background:var(--bg2);border-top:2px solid var(--orange);padding:.85rem 1.25rem;display:none;align-items:center;gap:.85rem}
 .install-banner.show{display:flex}
@@ -612,8 +625,18 @@ img{decoding:async}
   </div>
 </nav>
 
+<!-- SPLASH -->
+<div id="page-splash" class="page active">
+  <div class="splash-logo">
+    <div class="logo-dot" style="width:10px;height:10px"></div>
+    <span style="font-family:var(--font-d);font-size:3.2rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text)">STRIKR</span>
+  </div>
+  <div style="font-family:var(--font-d);font-size:.7rem;font-weight:600;letter-spacing:.28em;text-transform:uppercase;color:var(--text3);margin-top:.75rem">Log. Catch. Win.</div>
+  <div class="splash-spinner"></div>
+</div>
+
 <!-- LANDING -->
-<div id="page-landing" class="page active">
+<div id="page-landing" class="page">
   <section class="hero">
     <div class="hero-accent"></div>
     <div class="hero-line"></div>
@@ -838,6 +861,7 @@ img{decoding:async}
         <li id="catchmgr-nav-item" style="display:none"><a onclick="showPanel('catchmgr');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>Manage Catches</a></li>
         <li id="promoter-nav-item" style="display:none"><a onclick="showPanel('promoters');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Promoters</a></li>
         <li id="mod-nav-item" style="display:none"><a onclick="showPanel('modqueue');setNav(this)" id="mod-nav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Mod Review <span id="mod-count" style="background:var(--orange);color:#fff;font-size:.6rem;padding:1px 5px;border-radius:10px;margin-left:3px;display:none"></span></a></li>
+        <li id="catchmap-nav-item" style="display:none"><a onclick="showPanel('catchmap');setNav(this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>Catch Map</a></li>
       </ul>
 
     </aside>
@@ -919,6 +943,10 @@ img{decoding:async}
                 <div class="af-fg"><label>Metric</label><select id="ct-metric"><option value="weight">Heaviest fish</option><option value="length">Longest fish</option><option value="count">Most fish</option></select></div>
                 <div class="af-fg"><label>Prize Pool ($)</label><input type="number" id="ct-prize" placeholder="100" min="0"></div>
                 <div class="af-fg"><label>Type</label><select id="ct-type"><option value="monthly">Monthly</option><option value="weekly">Weekly</option></select></div>
+                <div class="af-fg af-full" style="margin-top:.35rem">
+                  <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer"><input type="checkbox" id="ct-sponsored" style="accent-color:var(--orange)"><span>Sponsored competition (free entry, external prize)</span></label>
+                </div>
+                <div class="af-fg af-full" id="ct-sponsor-wrap" style="display:none"><label>Sponsor Name</label><input type="text" id="ct-sponsor" placeholder="e.g. BCF, Daiwa Australia"></div>
                 <div class="af-fg"><label>Start Date</label><input type="datetime-local" id="ct-start"></div>
                 <div class="af-fg"><label>End Date</label>
                   <input type="datetime-local" id="ct-end">
@@ -965,6 +993,20 @@ img{decoding:async}
         </div>
         <p style="font-size:.82rem;color:var(--text2);margin-bottom:1.1rem;line-height:1.65;font-weight:300">These tournament entries were flagged by AI — ruler unclear, species uncertain, or GPS check failed. Review the photo and AI notes, then approve or reject.</p>
         <div id="modQueue"><div class="spin-lg"></div></div>
+      </div>
+
+      <!-- ADMIN CATCH MAP -->
+      <div id="panel-catchmap" class="panel">
+        <div class="panel-hdr"><h2>Tournament Catch Map</h2><span style="font-size:.75rem;color:var(--text3);font-weight:300">Admin only — GPS proof of location</span></div>
+        <p style="font-size:.82rem;color:var(--text2);margin-bottom:.85rem;line-height:1.65;font-weight:300">All tournament entry GPS locations. Use this to verify anglers were at a waterway when they submitted their entry.</p>
+        <div style="display:flex;gap:.65rem;margin-bottom:.85rem;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="filterCatchMap('all',this)">All Entries</button>
+          <button class="btn-outline btn-sm" onclick="filterCatchMap('pending',this)">Pending</button>
+          <button class="btn-outline btn-sm" onclick="filterCatchMap('approved',this)">Approved</button>
+          <button class="btn-outline btn-sm" onclick="filterCatchMap('rejected',this)">Rejected</button>
+        </div>
+        <div id="admin-catch-map" style="height:500px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden"></div>
+        <div id="catchmap-list" style="margin-top:1rem"></div>
       </div>
 
       <!-- CONDITIONS -->
@@ -1121,6 +1163,10 @@ img{decoding:async}
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Mod Queue
         </button>
+        <button onclick="showPanel('catchmap');closeMoreMenu()" style="background:rgba(232,98,26,.08);border:1px solid var(--orange-b);border-radius:var(--r);padding:.75rem .5rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--orange)">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+          Catch Map
+        </button>
       </div>
     </div>
   </div>
@@ -1181,6 +1227,7 @@ img{decoding:async}
           <button class="ptab active" onclick="setProfileTab('grid',this)">Catches</button>
           <button class="ptab" onclick="setProfileTab('pbs',this)">PB Wall</button>
           <button class="ptab" onclick="setProfileTab('tournaments',this)">Tournaments</button>
+          <button class="ptab" onclick="setProfileTab('tackle',this)">Tackle Bag</button>
         </div>
       </div>
       <div class="profile-content">
@@ -1195,6 +1242,9 @@ img{decoding:async}
         <div id="ptab-tournaments" style="display:none">
           <div id="p-tourn-list"></div>
           <div id="p-no-tourns" style="display:none;text-align:center;padding:3rem;color:var(--text3);font-size:.84rem;font-weight:300">No tournament entries yet.</div>
+        </div>
+        <div id="ptab-tackle" style="display:none">
+          <div id="tackle-bag-content"><div class="spin-lg"></div></div>
         </div>
       </div>
     </div>
@@ -1318,7 +1368,7 @@ img{decoding:async}
     </div>
 
     <div class="f-grid">
-      <div class="ff"><label>Species</label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
+      <div class="ff"><label>Species <button type="button" id="fish-id-btn" onclick="identifyFishFromPhoto()" style="display:none;background:var(--orange-dim);border:1px solid var(--orange-b);color:var(--orange);font-size:.6rem;padding:2px 7px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;margin-left:4px">🤖 AI ID</button></label><select id="f-sp" onchange="toggleCustomSpecies(this,'f-sp-custom')"><option value="">Select...</option><option>Kingfish</option><option>Flathead</option><option>Bream</option><option>Mulloway</option><option>Luderick</option><option>Trevally</option><option>Snapper</option><option>Tailor</option><option>Whiting</option><option>Other</option></select><input type="text" id="f-sp-custom" placeholder="Enter species name..." style="display:none;margin-top:4px;background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
       <div class="ff"><label>Catch Date</label><input type="date" id="f-date" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none;width:100%"></div>
       <div class="ff"><label>Location</label><input type="text" id="f-loc" placeholder="e.g. Sydney Heads"></div>
       <div class="ff"><label>Weight (kg)</label><input type="number" id="f-wt" placeholder="0.0" step="0.1" min="0"></div>
@@ -1420,7 +1470,12 @@ var entryPhotoBase64=null,catchPhotoBase64=null;
 var avatarCache={}; // username -> avatar_url
 
 (async function(){
+  // Show splash for at least 1s while auth resolves
+  const splashStart=Date.now();
   const{data:{session}}=await sb.auth.getSession();
+  const elapsed=Date.now()-splashStart;
+  const minSplash=1200;
+  if(elapsed<minSplash)await new Promise(r=>setTimeout(r,minSplash-elapsed));
   if(session)await doLogin(session.user);
   else showPage('landing');
   // Always load public leaderboard on landing
@@ -1451,13 +1506,7 @@ async function loadLandingLeaderboard(){
   const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
 
   // Get verified entries sorted by metric
-  const orderCol=t.metric==='length'?'length_cm':'weight_kg';
-  const{data:entries}=await sb.from('tournament_entries')
-    .select('*')
-    .eq('tournament_id',t.id)
-    .eq('verified',true)
-    .order(orderCol,{ascending:false})
-    .limit(10);
+  const entries=await getLeaderboardEntries(t.id,t.metric);
 
   // Comp header
   let html=`
@@ -1479,7 +1528,7 @@ async function loadLandingLeaderboard(){
   } else {
     const medals=['🥇','🥈','🥉'];
     html+=entries.map((e,i)=>{
-      const metric=t.metric==='length'?`${e.length_cm}cm`:t.metric==='weight'?`${e.weight_kg}kg`:`${e.count||0} fish`;
+      const metric=t.metric==='count'?`${e.count||0} fish`:t.metric==='length'?`${e.length_cm}cm`:`${e.weight_kg}kg`;
       const isTop=i<3;
       return `<div style="display:flex;align-items:center;gap:.85rem;padding:.85rem 1.5rem;border-bottom:1px solid var(--border);${isTop?'background:rgba(232,98,26,.04)':''}">
         <div style="font-family:var(--font-d);font-size:${isTop?'1.4rem':'1rem'};font-weight:800;width:32px;text-align:center;flex-shrink:0">${medals[i]||'#'+(i+1)}</div>
@@ -1511,9 +1560,18 @@ async function doLogin(user){
   document.getElementById('mod-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('catchmgr-nav-item').style.display=isAdmin?'':'none';
   document.getElementById('promoter-nav-item').style.display=isAdmin?'':'none';
+  document.getElementById('catchmap-nav-item').style.display=isAdmin?'':'none';
   // Show admin section in mobile more menu
   const moreAdmin=document.getElementById('more-menu-admin');
   if(moreAdmin)moreAdmin.style.display=isAdmin?'block':'none';
+  // Load user's avatar for nav
+  sb.from('profiles').select('avatar_url').eq('id',user.id).single().then(({data:p})=>{
+    if(p?.avatar_url){
+      const navAv=document.getElementById('nav-av');
+      if(navAv){navAv.innerHTML=`<img src="${p.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;navAv.style.padding='0';navAv.style.overflow='hidden';}
+      avatarCache[uname]=p.avatar_url;
+    }
+  });
 }
 
 // ===== AUTH =====
@@ -1786,7 +1844,7 @@ async function loadActiveTournamentsForSelect(){
     sel.innerHTML='<option value="">No active tournaments</option>';
     return;
   }
-  sel.innerHTML=tourns.map(t=>`<option value="${t.id}">${t.name} — ${t.metric==='length'?'Longest':'Heaviest'} ${t.species||'fish'}</option>`).join('');
+  sel.innerHTML=tourns.map(t=>`<option value="${t.id}">${t.name} — ${t.metric==='count'?'Most fish':t.metric==='length'?'Longest':'Heaviest'} ${t.species||'fish'}</option>`).join('');
 }
 
 function handlePhotoSelect(input){
@@ -1832,6 +1890,8 @@ function handlePhotoSelect(input){
 
       // Toast confirmation
       showPhotoToast(`✓ Photo added — ${kb}KB`);
+      const fishIdBtn=document.getElementById('fish-id-btn');
+      if(fishIdBtn)fishIdBtn.style.display='inline-flex';
     };
     img.src=e.target.result;
   };
@@ -2261,6 +2321,27 @@ async function loadModCount(){
 }
 
 // ===== TOURNAMENTS =====
+function buildCountLeaderboard(entries){
+  if(!entries)return[];
+  const counts={};const latest={};
+  entries.forEach(e=>{
+    const k=e.username;
+    counts[k]=(counts[k]||0)+1;
+    if(!latest[k]||new Date(e.created_at)>new Date(latest[k].created_at))latest[k]=e;
+  });
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([u,n])=>({...latest[u],count:n,username:u}));
+}
+
+async function getLeaderboardEntries(tournId,metric){
+  if(metric==='count'){
+    const{data:all}=await sb.from('tournament_entries').select('*').eq('tournament_id',tournId).eq('verified',true);
+    return buildCountLeaderboard(all);
+  }
+  const col=metric==='length'?'length_cm':'weight_kg';
+  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tournId).eq('verified',true).order(col,{ascending:false}).limit(10);
+  return entries||[];
+}
+
 async function loadTournaments(){
   const c=document.getElementById('tournContainer');
   c.innerHTML='<div class="spin-lg"></div>';
@@ -2272,18 +2353,21 @@ async function loadTournaments(){
   if(monthly.length>0){
     const t=monthly[0];
     const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
-    const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',t.id).eq('verified',true).order('weight_kg',{ascending:false}).limit(10);
+    const entries=await getLeaderboardEntries(t.id,t.metric);
+    const metricLabel=t.metric==='count'?'Most fish':t.metric==='length'?'Longest fish':'Heaviest fish';
+    const isSponsored=t.sponsored;
     html+=`<div class="tourn-hero">
       <div>
-        <div class="th-eyebrow">Monthly Big Pot · ${t.species||'All species'}</div>
+        <div class="th-eyebrow">${isSponsored?'🏅 Sponsored':'Monthly Big Pot'} · ${t.species||'All species'} · ${metricLabel}</div>
         <div class="th-name">${t.name}</div>
-        <div class="th-meta">${t.description||''} · ${daysLeft} days remaining · ${entries?entries.length:0} verified entries</div>
+        ${isSponsored&&t.sponsor_name?`<div class="sponsored-strip">🤝 Sponsored by ${t.sponsor_name} · Free entry · No buy-in required</div>`:''}
+        <div class="th-meta">${t.description||''} · ${daysLeft} days remaining · ${entries.length} verified entries</div>
         <div style="margin-top:1rem;display:flex;gap:.65rem;flex-wrap:wrap">
-          <button class="btn" onclick="openEnterModal('${t.id}','${t.name}')" style="padding:.52rem 1.3rem">Enter Tournament</button>
+          <button class="btn" onclick="openEnterModal('${t.id}','${t.name}')" style="padding:.52rem 1.3rem">Enter ${isSponsored?'(Free)':'Tournament'}</button>
           <span style="font-size:.72rem;color:var(--text3);align-self:center;font-weight:300">Multiple entries allowed · Best catch counts</span>
         </div>
       </div>
-      <div><div class="pool-big">$${Number(t.prize_pool).toLocaleString()}</div><div class="pool-lbl">Prize Pool</div></div>
+      <div><div class="pool-big">${isSponsored?'FREE':'$'+Number(t.prize_pool).toLocaleString()}</div><div class="pool-lbl">${isSponsored?'Sponsored':'Prize Pool'}</div></div>
     </div>
     <div class="tourn-grid">
       <div class="tourn-cell"><h4>Payout</h4><p>Top 3 verified entries share the pot.</p>
@@ -2302,7 +2386,7 @@ async function loadTournaments(){
           <li>Best verified catch on leaderboard</li>
         </ul>
       </div>
-      <div class="tourn-cell"><h4>Live Leaderboard</h4><p>Verified entries only.</p>
+      <div class="tourn-cell"><h4>Live Leaderboard</h4><p>Verified entries only. Ranked by ${t.metric==='count'?'most fish':t.metric==='length'?'longest':'heaviest'}.</p>
         <div>${entries&&entries.length>0?_renderLeaderboard(entries,t.metric):'<p style="font-size:.78rem;color:var(--text3);padding:.5rem 0;font-weight:300">No verified entries yet.</p>'}
         </div>
       </div>
@@ -2313,11 +2397,14 @@ async function loadTournaments(){
     for(const t of weekly){
       const isOngoing=t.ends_at&&t.ends_at.startsWith("2099");const daysLeft=isOngoing?"∞":Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000));
       const elapsed=Math.min(100,Math.round((new Date()-new Date(t.starts_at))/(new Date(t.ends_at)-new Date(t.starts_at))*100));
-      const{data:entries}=await sb.from('tournament_entries').select('id').eq('tournament_id',t.id).eq('verified',true);
+      const{data:wEntries}=await sb.from('tournament_entries').select('id').eq('tournament_id',t.id).eq('verified',true);
+      const wEntryCount=wEntries?wEntries.length:0;
+      const isWeeklySponsored=t.sponsored;
       html+=`<div class="t-card">
-        <div class="t-card-head"><div><div class="t-name">${t.name}</div><div style="font-size:.7rem;color:var(--text3);margin-top:2px;font-weight:300">${t.species||'All species'} · ${t.metric==='weight'?'Heaviest fish':t.metric==='length'?'Longest fish':'Most fish'}</div></div><span class="t-badge tb-weekly">Weekly</span></div>
-        <div class="t-meta">${daysLeft} days remaining · ${entries?entries.length:0} verified entries · ${t.description||''}</div>
-        <div class="t-stats"><div class="t-stat"><strong>$${Number(t.prize_pool).toLocaleString()}</strong><span>Prize</span></div><div class="t-stat"><strong>${daysLeft}d</strong><span>Left</span></div><div class="t-stat"><strong>${entries?entries.length:0}</strong><span>Entries</span></div></div>
+        <div class="t-card-head"><div><div class="t-name">${t.name}</div><div style="font-size:.7rem;color:var(--text3);margin-top:2px;font-weight:300">${t.species||'All species'} · ${t.metric==='count'?'Most fish':t.metric==='length'?'Longest fish':'Heaviest fish'}</div></div><span class="t-badge ${isWeeklySponsored?'tb-sponsored':'tb-weekly'}">${isWeeklySponsored?'Sponsored':'Weekly'}</span></div>
+        ${isWeeklySponsored&&t.sponsor_name?`<div class="sponsored-strip" style="margin:.5rem 0 0">🤝 Sponsored by ${t.sponsor_name}</div>`:''}
+        <div class="t-meta">${daysLeft} days remaining · ${wEntryCount} verified entries · ${t.description||''}</div>
+        <div class="t-stats"><div class="t-stat"><strong>${isWeeklySponsored?'FREE':'$'+Number(t.prize_pool).toLocaleString()}</strong><span>Prize</span></div><div class="t-stat"><strong>${daysLeft}d</strong><span>Left</span></div><div class="t-stat"><strong>${wEntryCount}</strong><span>Entries</span></div></div>
         <div class="prog"><div class="prog-f" style="width:${elapsed}%"></div></div>
         <div style="margin-top:.85rem;display:flex;gap:.65rem;flex-wrap:wrap;align-items:center">
           <button class="btn btn-sm" onclick="openEnterModal('${t.id}','${t.name}')" style="padding:.3rem .85rem">Enter</button>
@@ -2367,7 +2454,7 @@ async function loadAdminTourns(){
             <div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--orange)">$${Number(t.prize_pool).toLocaleString()}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Prize Pool</div></div>
             <div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--text)">${entryCount}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Entries</div></div>
             ${isActive?`<div><div style="font-family:var(--font-d);font-size:1.4rem;font-weight:800;color:var(--text)">${daysLeft}d</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Remaining</div></div>`:''}
-            <div><div style="font-family:var(--font-d);font-size:.82rem;font-weight:600;color:var(--text2)">${t.metric==='weight'?'Heaviest':t.metric==='length'?'Longest':'Most'} · ${t.species||'Any species'}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')}</div></div>
+            <div><div style="font-family:var(--font-d);font-size:.82rem;font-weight:600;color:var(--text2)">${t.metric==='count'?'Most fish':t.metric==='length'?'Longest':'Heaviest'} · ${t.species||'Any species'}${t.sponsored?` · 🏅 Sponsored${t.sponsor_name?' by '+t.sponsor_name:''}`:''}</div><div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3)">Ends ${new Date(t.ends_at).toLocaleDateString('en-AU')}</div></div>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.45rem;flex-shrink:0">
@@ -2394,6 +2481,8 @@ async function createTournament(){
   const start=document.getElementById('ct-start').value;
   const noEnd=document.getElementById('ct-no-end').checked;
   const end=noEnd?'2099-12-31T23:59':document.getElementById('ct-end').value;
+  const sponsored=document.getElementById('ct-sponsored')?.checked||false;
+  const sponsorName=document.getElementById('ct-sponsor')?.value.trim()||null;
   if(!start)return showAlert('ct-err','Please set a start date.');
   if(!noEnd&&!end)return showAlert('ct-err','Please set an end date or tick "No end date".');
   if(!name)return showAlert('ct-err','Tournament name is required.');
@@ -2401,7 +2490,7 @@ async function createTournament(){
   if(new Date(end)<=new Date(start))return showAlert('ct-err','End date must be after start date.');
   if(!currentUser)return showAlert('ct-err','You must be logged in.');
   setLoading('ct-btn',true,'Create Tournament');
-  const{error}=await sb.from('tournaments').insert({name,description:desc,species:species||null,metric,prize_pool:prize,type,starts_at:start,ends_at:end,status:'active',created_by:currentUser.id});
+  const{error}=await sb.from('tournaments').insert({name,description:desc,species:species||null,metric,prize_pool:prize,type,starts_at:start,ends_at:end,status:'active',created_by:currentUser.id,sponsored,sponsor_name:sponsorName});
   setLoading('ct-btn',false,'Create Tournament');
   if(error)return showAlert('ct-err',error.message);
   ['ct-name','ct-desc','ct-prize','ct-start','ct-end'].forEach(id=>document.getElementById(id).value='');
@@ -2413,7 +2502,9 @@ async function toggleEntries(tid,btn){
   const el=document.getElementById('entries-'+tid);
   if(el.style.display==='block'){el.style.display='none';btn.textContent=btn.textContent.replace('▲','▼');return;}
   btn.textContent='Loading...';
-  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tid).order('length_cm',{ascending:false});
+  const{data:t}=await sb.from('tournaments').select('metric').eq('id',tid).single();
+  const sortCol=t?.metric==='length'?'length_cm':t?.metric==='count'?'created_at':'weight_kg';
+  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tid).order(sortCol,{ascending:t?.metric==='count'});
   if(!entries||entries.length===0){el.innerHTML='<p style="font-size:.8rem;color:var(--text3);font-weight:300">No entries yet.</p>';}
   else{
     el.innerHTML=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">Entries</div>`+
@@ -2423,6 +2514,7 @@ async function toggleEntries(tid,btn){
       <div style="flex:1;min-width:0">
         <div style="font-size:.84rem;color:var(--text);font-weight:600">@${e.username}</div>
         <div style="font-size:.72rem;color:var(--text2);font-weight:300;margin-top:1px">${e.species||'Unknown'}${e.length_cm?' · '+e.length_cm+'cm':''}${e.weight_kg?' · '+e.weight_kg+'kg':''}</div>
+        ${e.gps_lat&&e.gps_lng?`<div style="font-size:.66rem;color:var(--orange);margin-top:2px">📍 ${e.gps_lat.toFixed(4)}, ${e.gps_lng.toFixed(4)} <a href="https://maps.google.com/?q=${e.gps_lat},${e.gps_lng}" target="_blank" style="color:var(--orange);text-decoration:none">↗ Map</a></div>`:'<div style="font-size:.66rem;color:var(--text3);margin-top:2px">No GPS data</div>'}
         <div style="font-size:.68rem;margin-top:3px"><span style="background:${e.verified?'rgba(74,158,106,.1)':'rgba(212,136,42,.1)'};color:${e.verified?'#9fd4b1':'#f4c87a'};border:1px solid ${e.verified?'rgba(74,158,106,.2)':'rgba(212,136,42,.2)'};padding:1px 6px;border-radius:3px;font-family:var(--font-d);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.6rem">${e.verified?'✓ Verified':'Pending'}</span></div>
       </div>
       <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
@@ -2740,19 +2832,27 @@ function setProfileTab(tab,btn){
   document.getElementById('ptab-grid').style.display=tab==='grid'?'block':'none';
   document.getElementById('ptab-pbs').style.display=tab==='pbs'?'block':'none';
   document.getElementById('ptab-tournaments').style.display=tab==='tournaments'?'block':'none';
+  document.getElementById('ptab-tackle').style.display=tab==='tackle'?'block':'none';
+  if(tab==='tackle')loadTackleBag();
 }
 
 async function toggleFollow(){
   if(!currentUser){showPage('auth');switchTab('signup');return;}
+  if(!profileData||!profileData.id){showPhotoToast('Error: profile not loaded');return;}
   const btn=document.getElementById('follow-btn');
+  btn.disabled=true;
   if(isFollowing){
-    await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',profileData.id);
+    const{error}=await sb.from('follows').delete().eq('follower_id',currentUser.id).eq('following_id',profileData.id);
+    btn.disabled=false;
+    if(error){showPhotoToast('Unfollow failed — try again');return;}
     isFollowing=false;btn.className='follow-btn not-following';btn.textContent='Follow';
-    const el=document.getElementById('p-followers');el.textContent=parseInt(el.textContent)-1;
+    const el=document.getElementById('p-followers');if(el)el.textContent=Math.max(0,parseInt(el.textContent||0)-1);
   }else{
-    await sb.from('follows').insert({follower_id:currentUser.id,following_id:profileData.id});
+    const{error}=await sb.from('follows').insert({follower_id:currentUser.id,following_id:profileData.id});
+    btn.disabled=false;
+    if(error){showPhotoToast('Follow failed — try again');return;}
     isFollowing=true;btn.className='follow-btn following';btn.textContent='Following';
-    const el=document.getElementById('p-followers');el.textContent=parseInt(el.textContent)+1;
+    const el=document.getElementById('p-followers');if(el)el.textContent=(parseInt(el.textContent||0)+1);
     const uname=currentUser.user_metadata?.username||currentUser.email.split('@')[0];
     sendNotif(profileData.id,'follow','New Follower',`${uname} started following you`,{username:uname});
   }
@@ -2779,20 +2879,32 @@ async function loadComments(catchId){
   const box=document.getElementById('comments-box-'+catchId);
   const{data:comments}=await sb.from('comments').select('*').eq('catch_id',catchId).order('created_at',{ascending:true});
   const count=comments?comments.length:0;
-  // Update button count
   const countEl=document.querySelector('.comment-count-'+catchId);
   if(countEl)countEl.textContent=count>0?count+' Comment'+(count!==1?'s':''):'Comment';
 
+  // Pre-fetch avatars for commenters
+  if(comments&&comments.length>0){
+    const uncached=[...new Set(comments.map(c=>c.username).filter(Boolean))].filter(u=>avatarCache[u]===undefined);
+    if(uncached.length>0){
+      const{data:profs}=await sb.from('profiles').select('username,avatar_url').in('username',uncached);
+      if(profs)profs.forEach(p=>{avatarCache[p.username]=p.avatar_url||null;});
+    }
+  }
+
   let html='';
   if(comments&&comments.length>0){
-    html+=comments.map(cm=>`<div class="comment-item">
-      <div class="comment-av">${(cm.username||'?').substring(0,2).toUpperCase()}</div>
+    html+=comments.map(cm=>{
+      const avUrl=avatarCache[cm.username];
+      const avEl=avUrl?`<div class="comment-av" style="overflow:hidden;padding:0;flex-shrink:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`:`<div class="comment-av">${(cm.username||'?').substring(0,2).toUpperCase()}</div>`;
+      return `<div class="comment-item">
+      ${avEl}
       <div class="comment-body">
         <span class="comment-user" onclick="loadProfile('${cm.username}')">${cm.username}</span>
         <div class="comment-text">${cm.content}</div>
         <div class="comment-time">${timeAgo(cm.created_at)}${currentUser&&(cm.user_id===currentUser.id||currentUser.email==='stinkslayerr@gmail.com')?` · <span onclick="deleteComment('${cm.id}','${catchId}',this)" style="cursor:pointer;color:var(--red)">delete</span>`:''}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+    }).join('');
   }
   // Input row
   if(currentUser){
@@ -2929,8 +3041,7 @@ async function loadWeeklyLB(tid,btn){
   if(box.style.display==='block'){box.style.display='none';btn.textContent='Leaderboard';return;}
   btn.textContent='Loading...';
   const{data:t}=await sb.from('tournaments').select('metric').eq('id',tid).single();
-  const orderCol=t?.metric==='length'?'length_cm':'weight_kg';
-  const{data:entries}=await sb.from('tournament_entries').select('*').eq('tournament_id',tid).eq('verified',true).order(orderCol,{ascending:false}).limit(10);
+  const entries=await getLeaderboardEntries(tid,t?.metric);
   box.innerHTML=_renderLeaderboard(entries,t?.metric);
   box.style.display='block';
   btn.textContent='Hide Leaderboard';
@@ -2941,14 +3052,19 @@ function _renderLeaderboard(entries,metric){
   const medals=['🥇','🥈','🥉'];
   const rankClass=['top1','top2','top3'];
   return '<div class="tourn-lb">'+entries.map((e,i)=>{
-    const val=metric==='length'?e.length_cm+'cm':metric==='weight'?e.weight_kg+'kg':(e.length_cm||e.weight_kg)?(e.length_cm?e.length_cm+'cm':e.weight_kg+'kg'):'—';
+    let val;
+    if(metric==='count')val=(e.count||0)+' fish';
+    else if(metric==='length')val=e.length_cm?e.length_cm+'cm':'—';
+    else val=e.weight_kg?e.weight_kg+'kg':'—';
     const valClass=i===0?'':i===1?'silver':'bronze';
+    const avUrl=avatarCache[e.username];
+    const avEl=avUrl?`<div style="width:48px;height:48px;border-radius:var(--r);flex-shrink:0;overflow:hidden;border:1px solid var(--border2)"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover"></div>`:(e.photo_data?`<img class="tlb-photo" src="data:image/jpeg;base64,${e.photo_data}" loading="lazy">`:'<div class="tlb-photo-blank">No photo</div>');
     return `<div class="tlb-row ${rankClass[i]||''}">
       <div class="tlb-rank">${medals[i]||'#'+(i+1)}</div>
-      ${e.photo_data?`<img class="tlb-photo" src="data:image/jpeg;base64,${e.photo_data}" loading="lazy">`:'<div class="tlb-photo-blank">No photo</div>'}
+      ${avEl}
       <div class="tlb-info">
         <div class="tlb-user" onclick="loadProfile('${e.username}')">${e.username}</div>
-        <div class="tlb-species">${e.species||''}${e.length_cm&&metric!=='length'?' · '+e.length_cm+'cm':''}${e.weight_kg&&metric!=='weight'?' · '+e.weight_kg+'kg':''}</div>
+        <div class="tlb-species">${e.species||''}${metric!=='count'?(e.length_cm&&metric!=='length'?' · '+e.length_cm+'cm':'')+(e.weight_kg&&metric!=='weight'?' · '+e.weight_kg+'kg':''):' · '+e.count+' verified catches'}</div>
       </div>
       <div class="tlb-val ${valClass}">${val}</div>
     </div>`;
@@ -3007,13 +3123,16 @@ function handleUserSearch(val){
   clearTimeout(searchTimeout);
   if(!val.trim()){results.style.display='none';return;}
   searchTimeout=setTimeout(async()=>{
-    const{data:users}=await sb.from('profiles').select('username,id').ilike('username','%'+val.trim()+'%').limit(8);
+    const{data:users}=await sb.from('profiles').select('username,id,avatar_url').ilike('username','%'+val.trim()+'%').limit(8);
     if(!users||users.length===0){results.style.display='none';return;}
-    results.innerHTML=users.map(u=>`
-      <div onclick="loadProfile('${u.username}');document.getElementById('user-search').value='';document.getElementById('search-results').style.display='none';" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
-        <div style="width:32px;height:32px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--orange);flex-shrink:0">${u.username.substring(0,2).toUpperCase()}</div>
+    users.forEach(u=>{if(u.username)avatarCache[u.username]=u.avatar_url||null;});
+    results.innerHTML=users.map(u=>{
+      const avEl=u.avatar_url?`<div style="width:32px;height:32px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${u.avatar_url}" style="width:100%;height:100%;object-fit:cover"></div>`:`<div style="width:32px;height:32px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;color:var(--orange);flex-shrink:0">${u.username.substring(0,2).toUpperCase()}</div>`;
+      return `<div onclick="loadProfile('${u.username}');document.getElementById('user-search').value='';document.getElementById('search-results').style.display='none';" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+        ${avEl}
         <div style="font-size:.84rem;font-weight:500;color:var(--text)">@${u.username}</div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     results.style.display='block';
   },300);
 }
@@ -3039,17 +3158,20 @@ async function loadFollowList(type){
   const el=document.getElementById('follow-list-content');
   let query;
   if(type==='followers'){
-    query=await sb.from('follows').select('follower_id,profiles!follows_follower_id_fkey(username)').eq('following_id',_followProfileId);
+    query=await sb.from('follows').select('follower_id,profiles!follows_follower_id_fkey(username,avatar_url)').eq('following_id',_followProfileId);
   } else {
-    query=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(username)').eq('follower_id',_followProfileId);
+    query=await sb.from('follows').select('following_id,profiles!follows_following_id_fkey(username,avatar_url)').eq('follower_id',_followProfileId);
   }
   const{data}=query;
   if(!data||data.length===0){el.innerHTML='<p style="text-align:center;font-size:.84rem;color:var(--text3);padding:1.5rem 0;font-weight:300">No '+type+' yet.</p>';return;}
   el.innerHTML=data.map(row=>{
-    const username=type==='followers'?row.profiles?.username:row.profiles?.username;
+    const p=row.profiles;
+    const username=p?.username;
     if(!username)return '';
+    const avUrl=p?.avatar_url;
+    const avEl=avUrl?`<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${avUrl}" style="width:100%;height:100%;object-fit:cover"></div>`:`<div style="width:36px;height:36px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--orange);flex-shrink:0">${username.substring(0,2).toUpperCase()}</div>`;
     return `<div onclick="closeModal();loadProfile('${username}')" style="display:flex;align-items:center;gap:.75rem;padding:.65rem 0;border-bottom:1px solid var(--border);cursor:pointer">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--orange-dim);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--orange);flex-shrink:0">${username.substring(0,2).toUpperCase()}</div>
+      ${avEl}
       <div style="font-size:.86rem;font-weight:500;color:var(--text)">@${username}</div>
     </div>`;
   }).join('');
@@ -3255,7 +3377,7 @@ function handleHash(){const hash=window.location.hash;if(hash.startsWith('#/prof
 window.addEventListener('hashchange',handleHash);
 
 function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);if(n!=='profile')document.title='Strikr';}
-function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));if(n)document.getElementById('panel-'+n)?.classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();if(n==='promoters')loadPromoters();if(n==='refer')loadReferPanel();if(n==='notifications'){loadNotifications();markAllRead();}if(n==='dashboard')loadDashboard();if(n==='conditions'){}}
+function showPanel(n){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));if(n)document.getElementById('panel-'+n)?.classList.add('active');if(n==='feed')loadFeed(currentFeedTab);if(n==='mycatches')loadMyCatches();if(n==='tournaments')loadTournaments();if(n==='admin')loadAdminTourns();if(n==='modqueue')loadModQueue();if(n==='map')loadMap();if(n==='achievements')loadAchievements();if(n==='catchmgr')loadCatchMgr();if(n==='promoters')loadPromoters();if(n==='refer')loadReferPanel();if(n==='notifications'){loadNotifications();markAllRead();}if(n==='dashboard')loadDashboard();if(n==='catchmap')loadCatchMap();if(n==='conditions'){}}
 
 // ===== DASHBOARD =====
 async function loadDashboard(){
@@ -4074,6 +4196,189 @@ function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='pass
 function checkStr(){const pw=document.getElementById('su-pw').value;const segs=['s1','s2','s3','s4'].map(id=>document.getElementById(id));let s=0;if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^a-zA-Z0-9]/.test(pw))s++;const cols=['','#b83a2e','#d4882a','#4a9e6a','#e8621a'];segs.forEach((seg,i)=>seg.style.background=i<s?cols[s]:'rgba(255,255,255,.06)');}
 function timeAgo(ts){const s=Math.floor((new Date()-new Date(ts))/1000);if(s<60)return 'just now';if(s<3600)return Math.floor(s/60)+'m ago';if(s<86400)return Math.floor(s/3600)+'h ago';return Math.floor(s/86400)+'d ago';}
 (function(){const now=new Date();const fmt=d=>d.toISOString().slice(0,16);const s=document.getElementById('ct-start');const e=document.getElementById('ct-end');if(s)s.value=fmt(now);if(e)e.value=fmt(new Date(now.getTime()+7*86400000));document.getElementById('ct-type').onchange=function(){if(e)e.value=fmt(new Date(now.getTime()+(this.value==='monthly'?30:7)*86400000));};})();
+
+// ===== TACKLE BAG =====
+const GEAR_CATEGORIES=[
+  {id:'rod',label:'Rod',icon:'🎣'},
+  {id:'reel',label:'Reel',icon:'⚙️'},
+  {id:'line',label:'Line',icon:'〰️'},
+  {id:'lure',label:'Lure',icon:'🪝'},
+  {id:'bait',label:'Bait',icon:'🦐'},
+  {id:'terminal',label:'Terminal Tackle',icon:'🔩'},
+  {id:'other',label:'Other',icon:'📦'}
+];
+
+async function loadTackleBag(){
+  const el=document.getElementById('tackle-bag-content');
+  if(!el)return;
+  const isOwn=currentUser&&profileData&&profileData.id===currentUser.id;
+  const{data:profile}=await sb.from('profiles').select('tackle_bag').eq('id',profileData.id).single();
+  const items=profile?.tackle_bag||[];
+  let html='';
+  if(isOwn){
+    html+=`<div style="background:var(--bg2);border:1px solid var(--border2);padding:1.1rem;border-radius:var(--r);margin-bottom:1.1rem">
+      <div style="font-family:var(--font-d);font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem">Add Gear</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
+        <select id="gear-cat" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none">
+          ${GEAR_CATEGORIES.map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('')}
+        </select>
+        <input type="text" id="gear-brand" placeholder="Brand (e.g. Shimano)" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto;gap:.5rem">
+        <input type="text" id="gear-name" placeholder="Name / model (e.g. Stradic 4000)" style="background:var(--bg);border:1px solid var(--border2);color:var(--text);padding:.5rem .68rem;font-size:.82rem;border-radius:var(--r);outline:none">
+        <button class="btn btn-sm" onclick="addGearItem()">Add</button>
+      </div>
+    </div>`;
+  }
+  if(items.length===0){
+    html+='<div class="empty-state"><p>'+(isOwn?'Your tackle bag is empty — add your gear above.':'This angler hasn\'t added their gear yet.')+'</p></div>';
+  } else {
+    const grouped={};
+    items.forEach(item=>{
+      const cat=item.cat||'other';
+      if(!grouped[cat])grouped[cat]=[];
+      grouped[cat].push(item);
+    });
+    GEAR_CATEGORIES.forEach(cat=>{
+      if(!grouped[cat.id])return;
+      html+=`<div style="font-family:var(--font-d);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem;margin-top:.85rem">${cat.icon} ${cat.label}</div>`;
+      grouped[cat.id].forEach((item,idx)=>{
+        html+=`<div class="gear-item">
+          <div class="gear-icon">${cat.icon}</div>
+          <div class="gear-info">
+            <div class="gear-name">${item.name}</div>
+            ${item.brand?`<div class="gear-cat">${item.brand}</div>`:''}
+          </div>
+          ${isOwn?`<button onclick="removeGearItem(${items.indexOf(item)},this)" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:.75rem;padding:.25rem">✕</button>`:''}
+        </div>`;
+      });
+    });
+  }
+  el.innerHTML=html;
+}
+
+async function addGearItem(){
+  const cat=document.getElementById('gear-cat').value;
+  const brand=document.getElementById('gear-brand').value.trim();
+  const name=document.getElementById('gear-name').value.trim();
+  if(!name)return;
+  const{data:profile}=await sb.from('profiles').select('tackle_bag').eq('id',currentUser.id).single();
+  const items=profile?.tackle_bag||[];
+  items.push({cat,brand:brand||null,name,added:new Date().toISOString()});
+  const{error}=await sb.from('profiles').update({tackle_bag:items}).eq('id',currentUser.id);
+  if(error){showPhotoToast('Error saving gear');return;}
+  document.getElementById('gear-name').value='';
+  document.getElementById('gear-brand').value='';
+  showPhotoToast('✓ Gear added to tackle bag');
+  loadTackleBag();
+}
+
+async function removeGearItem(idx,btn){
+  btn.disabled=true;
+  const{data:profile}=await sb.from('profiles').select('tackle_bag').eq('id',currentUser.id).single();
+  const items=profile?.tackle_bag||[];
+  items.splice(idx,1);
+  await sb.from('profiles').update({tackle_bag:items}).eq('id',currentUser.id);
+  loadTackleBag();
+}
+
+// ===== FISH ID VIA AI =====
+async function identifyFishFromPhoto(){
+  if(!catchPhotoBase64){showPhotoToast('Add a photo first to identify the species');return;}
+  const btn=document.getElementById('fish-id-btn');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Identifying...';
+  try{
+    const res=await fetch(`${SURL}/functions/v1/identify-fish`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+SKEY},
+      body:JSON.stringify({photo:catchPhotoBase64})
+    });
+    const data=await res.json();
+    if(data.species){
+      const spSel=document.getElementById('f-sp');
+      const KNOWN=['Kingfish','Flathead','Bream','Mulloway','Luderick','Trevally','Snapper','Tailor','Whiting'];
+      const matched=KNOWN.find(s=>s.toLowerCase()===data.species.toLowerCase());
+      if(matched){
+        spSel.value=matched;
+        document.getElementById('f-sp-custom').style.display='none';
+      } else {
+        spSel.value='Other';
+        const custom=document.getElementById('f-sp-custom');
+        custom.style.display='block';custom.value=data.species;
+      }
+      showPhotoToast(`🤖 AI identified: ${data.species}${data.confidence?' ('+data.confidence+'% confidence)':''}`);
+    } else {
+      showPhotoToast('Could not identify species — try a clearer photo');
+    }
+  }catch(e){
+    showPhotoToast('Fish ID unavailable — deploy the identify-fish edge function');
+  }
+  btn.disabled=false;btn.textContent=orig;
+}
+
+// ===== ADMIN CATCH MAP =====
+var adminCatchMap=null,adminCatchMapEntries=[];
+
+async function loadCatchMap(){
+  const mapEl=document.getElementById('admin-catch-map');
+  const listEl=document.getElementById('catchmap-list');
+  if(!mapEl)return;
+
+  if(!adminCatchMap){
+    adminCatchMap=L.map('admin-catch-map',{center:[-27,134],zoom:4});
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(adminCatchMap);
+  }
+  adminCatchMap.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.CircleMarker)adminCatchMap.removeLayer(l);});
+
+  const{data:entries}=await sb.from('tournament_entries').select('*').not('gps_lat','is',null).not('gps_lng','is',null).order('created_at',{ascending:false});
+  adminCatchMapEntries=entries||[];
+
+  renderCatchMapEntries(entries||[]);
+  setTimeout(()=>adminCatchMap.invalidateSize(),150);
+}
+
+function renderCatchMapEntries(entries){
+  const listEl=document.getElementById('catchmap-list');
+  adminCatchMap.eachLayer(l=>{if(l instanceof L.Marker||l instanceof L.CircleMarker)adminCatchMap.removeLayer(l);});
+  entries.forEach(e=>{
+    const color=e.verified?'#4a9e6a':e.verification_status==='rejected'?'#b83a2e':'#d4882a';
+    const marker=L.circleMarker([e.gps_lat,e.gps_lng],{radius:8,fillColor:color,color:'rgba(0,0,0,.3)',weight:1.5,fillOpacity:.85}).addTo(adminCatchMap);
+    const photo=e.photo_data?`<img src="data:image/jpeg;base64,${e.photo_data}" style="width:100%;max-height:100px;object-fit:cover;border-radius:3px;margin-bottom:5px">`:'';
+    marker.bindPopup(`<div style="min-width:180px;font-family:Barlow,sans-serif">${photo}<strong style="font-size:.82rem">@${e.username}</strong><div style="font-size:.75rem;color:#666">${e.species||'Unknown'}${e.length_cm?' · '+e.length_cm+'cm':''}${e.weight_kg?' · '+e.weight_kg+'kg':''}</div><div style="font-size:.7rem;color:#888;margin-top:3px">${new Date(e.created_at).toLocaleString('en-AU')}</div><div style="font-size:.7rem;margin-top:3px;font-weight:700;color:${color}">${e.verified?'✓ Verified':e.verification_status==='rejected'?'✗ Rejected':'⏳ Pending'}</div></div>`,{maxWidth:220});
+  });
+  if(entries.length>0)adminCatchMap.fitBounds(entries.map(e=>[e.gps_lat,e.gps_lng]),{padding:[30,30]});
+  listEl.innerHTML=`<div style="font-family:var(--font-d);font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">${entries.length} entries with GPS data</div>`+entries.slice(0,20).map(e=>`
+    <div style="display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)">
+      ${e.photo_data?`<img src="data:image/jpeg;base64,${e.photo_data}" style="width:36px;height:36px;object-fit:cover;border-radius:3px;flex-shrink:0">`:'<div style="width:36px;height:36px;background:var(--bg3);border-radius:3px;flex-shrink:0"></div>'}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.82rem;font-weight:500;color:var(--text)">@${e.username} — ${e.species||'Unknown'}</div>
+        <div style="font-size:.7rem;color:var(--orange);margin-top:1px">📍 ${e.gps_lat.toFixed(4)}, ${e.gps_lng.toFixed(4)} <a href="https://maps.google.com/?q=${e.gps_lat},${e.gps_lng}" target="_blank" style="color:var(--orange)">↗</a></div>
+        <div style="font-size:.68rem;color:var(--text3);font-weight:300">${new Date(e.created_at).toLocaleString('en-AU')}</div>
+      </div>
+      <span style="font-size:.62rem;font-family:var(--font-d);font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:3px;flex-shrink:0;${e.verified?'background:rgba(74,158,106,.1);color:#9fd4b1;border:1px solid rgba(74,158,106,.2)':e.verification_status==='rejected'?'background:rgba(184,58,46,.1);color:#f4a09a;border:1px solid rgba(184,58,46,.22)':'background:rgba(212,136,42,.09);color:#f4c87a;border:1px solid rgba(212,136,42,.2)'}">${e.verified?'Verified':e.verification_status==='rejected'?'Rejected':'Pending'}</span>
+    </div>`).join('');
+}
+
+function filterCatchMap(status,btn){
+  document.querySelectorAll('#panel-catchmap button').forEach(b=>b.className='btn-outline btn-sm');
+  btn.className='btn btn-sm';
+  let filtered=adminCatchMapEntries;
+  if(status==='pending')filtered=filtered.filter(e=>!e.verified&&e.verification_status!=='rejected');
+  else if(status==='approved')filtered=filtered.filter(e=>e.verified);
+  else if(status==='rejected')filtered=filtered.filter(e=>e.verification_status==='rejected');
+  renderCatchMapEntries(filtered);
+}
+
+// ===== SPONSORED COMP TOGGLE =====
+document.addEventListener('DOMContentLoaded',()=>{
+  const sponsoredCb=document.getElementById('ct-sponsored');
+  if(sponsoredCb){
+    sponsoredCb.addEventListener('change',function(){
+      document.getElementById('ct-sponsor-wrap').style.display=this.checked?'block':'none';
+    });
+  }
+});
 
 // PWA Install prompt
 let deferredInstallPrompt=null;
