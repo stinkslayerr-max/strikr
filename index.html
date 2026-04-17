@@ -1025,9 +1025,12 @@ img{decoding:async}
           <button class="social-type-btn" data-type="engagement" onclick="setSocialType(this)">🔥 Engagement</button>
           <button class="social-type-btn" data-type="winner" onclick="setSocialType(this)">🥇 Winner Shoutout</button>
         </div>
-        <button class="btn" onclick="generateSocialPost()" id="social-gen-btn" style="margin-bottom:1rem;padding:.52rem 1.4rem">Generate Caption</button>
+        <div style="display:flex;gap:.65rem;margin-bottom:1rem;flex-wrap:wrap">
+          <button class="btn" onclick="generateSocialPost()" id="social-gen-btn" style="padding:.52rem 1.4rem">Generate Caption</button>
+          <button class="btn-outline" onclick="generateSocialImage()" id="social-img-btn" style="padding:.52rem 1.4rem">Generate Image</button>
+        </div>
         <div id="social-output" style="display:none">
-          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:.75rem;position:relative">
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;margin-bottom:.75rem">
             <div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">CAPTION</div>
             <div id="social-caption" style="font-size:.88rem;line-height:1.75;color:var(--text);white-space:pre-wrap"></div>
           </div>
@@ -1038,6 +1041,14 @@ img{decoding:async}
           <div style="display:flex;gap:.65rem;flex-wrap:wrap">
             <button class="btn" onclick="copySocialPost()" style="padding:.52rem 1.2rem">Copy Full Post</button>
             <button class="btn-outline" onclick="generateSocialPost()" style="padding:.52rem 1.2rem">Regenerate</button>
+          </div>
+        </div>
+        <div id="social-img-output" style="display:none;margin-top:1.25rem">
+          <div style="font-family:var(--font-d);font-size:.58rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:.65rem">IMAGE PREVIEW</div>
+          <canvas id="social-canvas" style="width:100%;max-width:540px;border-radius:var(--r);display:block;border:1px solid var(--border)"></canvas>
+          <div style="display:flex;gap:.65rem;margin-top:.75rem;flex-wrap:wrap">
+            <button class="btn" onclick="downloadSocialImage()" style="padding:.52rem 1.2rem">Download PNG</button>
+            <button class="btn-outline" onclick="generateSocialImage()" style="padding:.52rem 1.2rem">Regenerate</button>
           </div>
         </div>
       </div>
@@ -4578,6 +4589,334 @@ function copySocialPost(){
   const caption=document.getElementById('social-caption').textContent;
   const tags=document.getElementById('social-tags').textContent;
   navigator.clipboard.writeText(caption+'\n\n'+tags).then(()=>showPhotoToast('Copied to clipboard ✓'));
+}
+
+// ===== SOCIAL IMAGE GENERATOR =====
+function _sctx(canvas){
+  const ctx=canvas.getContext('2d');
+  const S=1080;
+  canvas.width=S;canvas.height=S;
+  return{ctx,S};
+}
+
+function _drawBase(ctx,S){
+  // Background
+  ctx.fillStyle='#0a0e14';
+  ctx.fillRect(0,0,S,S);
+  // Subtle grid texture
+  ctx.strokeStyle='rgba(255,255,255,.025)';
+  ctx.lineWidth=1;
+  for(let i=0;i<S;i+=60){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,S);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(S,i);ctx.stroke();}
+  // Top orange bar
+  ctx.fillStyle='#E8621A';
+  ctx.fillRect(0,0,S,8);
+  // Bottom orange bar
+  ctx.fillRect(0,S-8,S,8);
+}
+
+function _drawLogo(ctx,S,x,y,size){
+  size=size||32;
+  ctx.fillStyle='#E8621A';
+  ctx.beginPath();ctx.arc(x,y+size*0.1,size*0.22,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#f0f4f8';
+  ctx.font=`800 ${size}px 'Barlow Condensed',sans-serif`;
+  ctx.letterSpacing='0.08em';
+  ctx.fillText('STRIKR',x+size*0.38,y+size*0.42);
+}
+
+function _drawTag(ctx,x,y,label,size){
+  size=size||16;
+  const pad=size*0.6;
+  const w=ctx.measureText(label).width+pad*2;
+  ctx.fillStyle='rgba(232,98,26,.15)';
+  ctx.strokeStyle='rgba(232,98,26,.35)';
+  ctx.lineWidth=1.5;
+  const r=4;
+  ctx.beginPath();ctx.roundRect(x,y-size,w,size*1.8,r);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#E8621A';
+  ctx.font=`700 ${size}px 'Barlow Condensed',sans-serif`;
+  ctx.fillText(label,x+pad,y+size*0.3);
+}
+
+function _wrapText(ctx,text,x,y,maxW,lineH){
+  const words=text.split(' ');let line='';let ly=y;
+  words.forEach(w=>{
+    const test=line?line+' '+w:w;
+    if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line,x,ly);line=w;ly+=lineH;}
+    else line=test;
+  });
+  if(line)ctx.fillText(line,x,ly);
+  return ly+lineH;
+}
+
+async function generateSocialImage(){
+  setLoading('social-img-btn',true,'Generate Image');
+  await document.fonts.ready;
+  const canvas=document.getElementById('social-canvas');
+  const out=document.getElementById('social-img-output');
+
+  try{
+    if(_socialType==='tournament'||_socialType==='engagement'){
+      const{data:tourns}=await sb.from('tournaments').select('*').eq('status','active').order('created_at',{ascending:false}).limit(1);
+      const t=tourns&&tourns.length?tourns[0]:null;
+      let entryCount=0;
+      if(t){const{count}=await sb.from('tournament_entries').select('*',{count:'exact',head:true}).eq('tournament_id',t.id).eq('verified',true);entryCount=count||0;}
+      _drawTournamentImage(canvas,t,entryCount);
+    }
+    else if(_socialType==='leaderboard'){
+      const{data:tourns}=await sb.from('tournaments').select('*').eq('status','active').limit(1);
+      const t=tourns&&tourns.length?tourns[0]:null;
+      const entries=t?await getLeaderboardEntries(t.id,t.metric||'weight'):[];
+      _drawLeaderboardImage(canvas,t,entries);
+    }
+    else if(_socialType==='catch'||_socialType==='winner'){
+      const{data:catches}=await sb.from('catches').select('*').eq('verified',true).order('created_at',{ascending:false}).limit(20);
+      const c=catches&&catches.length?catches[Math.floor(Math.random()*Math.min(catches.length,10))]:null;
+      await _drawCatchImage(canvas,c);
+    }
+    else if(_socialType==='growth'){
+      const[{count:users},{count:totalCatches}]=await Promise.all([
+        sb.from('profiles').select('*',{count:'exact',head:true}),
+        sb.from('catches').select('*',{count:'exact',head:true}).eq('verified',true)
+      ]);
+      _drawGrowthImage(canvas,users||0,totalCatches||0);
+    }
+    out.style.display='block';
+  }catch(e){
+    console.error(e);
+  }
+  setLoading('social-img-btn',false,'Generate Image');
+}
+
+function _drawTournamentImage(canvas,t,entryCount){
+  const{ctx,S}=_sctx(canvas);
+  _drawBase(ctx,S);
+
+  // Orange accent stripe left
+  const grad=ctx.createLinearGradient(0,0,200,0);
+  grad.addColorStop(0,'rgba(232,98,26,.35)');grad.addColorStop(1,'rgba(232,98,26,0)');
+  ctx.fillStyle=grad;ctx.fillRect(0,0,S,S);
+
+  // Logo top-left
+  _drawLogo(ctx,S,68,72,38);
+
+  // Tag
+  ctx.font=`700 22px 'Barlow Condensed',sans-serif`;
+  _drawTag(ctx,68,160,'ACTIVE COMPETITION',18);
+
+  // Tournament name
+  ctx.fillStyle='#f0f4f8';
+  ctx.font=`800 ${t?Math.min(96,Math.max(56,1800/((t.name||'').length+1))):72}px 'Barlow Condensed',sans-serif`;
+  ctx.textAlign='left';
+  _wrapText(ctx,(t?t.name.toUpperCase():'NEW COMPETITION'),68,310,S-136,108);
+
+  // Divider
+  ctx.strokeStyle='rgba(232,98,26,.4)';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(68,480);ctx.lineTo(S-68,480);ctx.stroke();
+
+  // Stats row
+  const stats=t?[
+    {label:'PRIZE POOL',val:'$'+Number(t.prize_pool||0).toLocaleString()},
+    {label:'ENTRIES',val:String(entryCount)},
+    {label:'DAYS LEFT',val:t.ends_at&&!t.ends_at.startsWith('2099')?String(Math.max(0,Math.ceil((new Date(t.ends_at)-new Date())/86400000))):'∞'}
+  ]:[{label:'PRIZE POOL',val:'$500'},{label:'ENTRIES',val:'0'},{label:'DAYS LEFT',val:'30'}];
+  const colW=(S-136)/3;
+  stats.forEach((s,i)=>{
+    const cx=68+colW*i+colW/2;
+    ctx.fillStyle='#E8621A';
+    ctx.font=`800 72px 'Barlow Condensed',sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText(s.val,cx,610);
+    ctx.fillStyle='rgba(240,244,248,.45)';
+    ctx.font=`600 22px 'Barlow Condensed',sans-serif`;
+    ctx.fillText(s.label,cx,648);
+  });
+
+  // CTA
+  ctx.textAlign='center';
+  ctx.fillStyle='#E8621A';
+  ctx.font=`700 28px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('DOWNLOAD STRIKR — LINK IN BIO',S/2,S-80);
+  ctx.fillStyle='rgba(240,244,248,.3)';
+  ctx.font=`400 22px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('Log. Catch. Win.',S/2,S-46);
+}
+
+function _drawLeaderboardImage(canvas,t,entries){
+  const{ctx,S}=_sctx(canvas);
+  _drawBase(ctx,S);
+
+  _drawLogo(ctx,S,68,72,38);
+  ctx.font=`700 18px 'Barlow Condensed',sans-serif`;
+  _drawTag(ctx,68,160,'LEADERBOARD UPDATE',18);
+
+  ctx.fillStyle='#f0f4f8';
+  ctx.font=`800 76px 'Barlow Condensed',sans-serif`;
+  ctx.textAlign='left';
+  ctx.fillText((t?t.name.toUpperCase():'COMPETITION'),68,290);
+  ctx.fillStyle='rgba(232,98,26,.6)';
+  ctx.font=`700 32px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('TOP ANGLERS',68,336);
+
+  const top3=entries.slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  const medalColors=['#E8621A','#a0aab8','#8b6a3e'];
+  top3.forEach((e,i)=>{
+    const y=420+i*170;
+    // Row bg
+    ctx.fillStyle=i===0?'rgba(232,98,26,.12)':'rgba(255,255,255,.04)';
+    ctx.beginPath();ctx.roundRect(68,y-44,S-136,130,8);ctx.fill();
+    if(i===0){ctx.strokeStyle='rgba(232,98,26,.3)';ctx.lineWidth=1.5;ctx.beginPath();ctx.roundRect(68,y-44,S-136,130,8);ctx.stroke();}
+    // Position
+    ctx.fillStyle=medalColors[i];
+    ctx.font=`800 52px 'Barlow Condensed',sans-serif`;
+    ctx.textAlign='left';
+    ctx.fillText(String(i+1),100,y+28);
+    // Name
+    ctx.fillStyle='#f0f4f8';
+    ctx.font=`700 44px 'Barlow Condensed',sans-serif`;
+    ctx.fillText('@'+e.username,170,y+28);
+    // Stat
+    const metricVal=t?.metric==='count'?e.count+' fish':t?.metric==='length'?(e.length_cm||'—')+'cm':(e.weight_kg||'—')+'kg';
+    ctx.fillStyle='rgba(232,98,26,.9)';
+    ctx.font=`700 36px 'Barlow Condensed',sans-serif`;
+    ctx.textAlign='right';
+    ctx.fillText(String(metricVal),S-100,y+28);
+    ctx.textAlign='left';
+  });
+  if(!top3.length){
+    ctx.fillStyle='rgba(240,244,248,.3)';
+    ctx.font=`400 36px 'Barlow Condensed',sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText('No entries yet — be the first!',S/2,560);
+  }
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#E8621A';
+  ctx.font=`700 28px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('DOWNLOAD STRIKR — LINK IN BIO',S/2,S-80);
+  ctx.fillStyle='rgba(240,244,248,.3)';
+  ctx.font=`400 22px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('Log. Catch. Win.',S/2,S-46);
+}
+
+async function _drawCatchImage(canvas,c){
+  const{ctx,S}=_sctx(canvas);
+  _drawBase(ctx,S);
+
+  if(c?.photo_data){
+    try{
+      await new Promise((res,rej)=>{
+        const img=new Image();
+        img.onload=()=>{
+          // Fill left 55% with photo
+          ctx.save();
+          ctx.beginPath();ctx.rect(0,8,S*0.58,S-16);ctx.clip();
+          const iw=img.width,ih=img.height;
+          const scale=Math.max(S*0.58/iw,(S-16)/ih);
+          ctx.drawImage(img,0,8,iw*scale,ih*scale);
+          ctx.restore();
+          // Dark gradient over photo for readability
+          const g=ctx.createLinearGradient(0,0,S*0.65,0);
+          g.addColorStop(0,'rgba(10,14,20,0)');g.addColorStop(0.5,'rgba(10,14,20,.4)');g.addColorStop(1,'rgba(10,14,20,.98)');
+          ctx.fillStyle=g;ctx.fillRect(0,0,S,S);
+          res();
+        };
+        img.onerror=rej;
+        img.src='data:image/jpeg;base64,'+c.photo_data;
+      });
+    }catch(e){}
+  }
+
+  // Right side content
+  const rx=S*0.52;
+  _drawLogo(ctx,S,rx,72,34);
+  ctx.font=`700 18px 'Barlow Condensed',sans-serif`;
+  _drawTag(ctx,rx,152,'CATCH OF THE DAY',16);
+
+  ctx.fillStyle='#E8621A';
+  ctx.font=`800 ${c?.species?Math.min(88,1400/(c.species.length+1)):72}px 'Barlow Condensed',sans-serif`;
+  ctx.textAlign='left';
+  ctx.fillText((c?.species||'BIG FISH').toUpperCase(),rx,310);
+
+  ctx.fillStyle='rgba(240,244,248,.7)';
+  ctx.font=`600 32px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('@'+(c?.username||'angler'),rx,360);
+
+  // Stats
+  const stats=[];
+  if(c?.weight_kg)stats.push({l:'WEIGHT',v:c.weight_kg+'kg'});
+  if(c?.length_cm)stats.push({l:'LENGTH',v:c.length_cm+'cm'});
+  if(c?.location)stats.push({l:'LOCATION',v:c.location.slice(0,18)});
+  stats.slice(0,3).forEach((s,i)=>{
+    const sy=460+i*110;
+    ctx.fillStyle='rgba(232,98,26,.9)';
+    ctx.font=`800 52px 'Barlow Condensed',sans-serif`;
+    ctx.fillText(s.v,rx,sy);
+    ctx.fillStyle='rgba(240,244,248,.4)';
+    ctx.font=`600 20px 'Barlow Condensed',sans-serif`;
+    ctx.fillText(s.l,rx,sy+28);
+  });
+
+  ctx.fillStyle='#E8621A';
+  ctx.font=`700 26px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('STRIKR — LOG. CATCH. WIN.',rx,S-80);
+  ctx.fillStyle='rgba(240,244,248,.3)';
+  ctx.font=`400 20px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('Link in bio 👆',rx,S-46);
+}
+
+function _drawGrowthImage(canvas,users,catches){
+  const{ctx,S}=_sctx(canvas);
+  _drawBase(ctx,S);
+
+  // Large orange circle accent
+  const g=ctx.createRadialGradient(S*0.8,S*0.3,0,S*0.8,S*0.3,S*0.55);
+  g.addColorStop(0,'rgba(232,98,26,.18)');g.addColorStop(1,'rgba(232,98,26,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,S,S);
+
+  _drawLogo(ctx,S,68,72,40);
+  ctx.font=`700 18px 'Barlow Condensed',sans-serif`;
+  _drawTag(ctx,68,160,'AUSTRALIA\'S FISHING APP',18);
+
+  ctx.fillStyle='#f0f4f8';
+  ctx.font=`800 80px 'Barlow Condensed',sans-serif`;
+  ctx.textAlign='left';
+  ctx.fillText('THE COMMUNITY',68,310);
+  ctx.fillStyle='#E8621A';
+  ctx.fillText('IS GROWING.',68,400);
+
+  // Stats cards
+  [[users.toLocaleString(),'ANGLERS'],[catches.toLocaleString(),'VERIFIED CATCHES'],['FREE','TO JOIN']].forEach(([v,l],i)=>{
+    const cx=68+i*(S-136)/3+(S-136)/6;
+    ctx.fillStyle='rgba(255,255,255,.05)';
+    ctx.beginPath();ctx.roundRect(cx-(S-136)/7,490,Math.floor((S-190)/3),200,10);ctx.fill();
+    ctx.strokeStyle='rgba(232,98,26,.2)';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.roundRect(cx-(S-136)/7,490,Math.floor((S-190)/3),200,10);ctx.stroke();
+    ctx.fillStyle='#E8621A';
+    ctx.font=`800 ${v.length>5?52:64}px 'Barlow Condensed',sans-serif`;
+    ctx.textAlign='center';
+    ctx.fillText(v,cx,590);
+    ctx.fillStyle='rgba(240,244,248,.45)';
+    ctx.font=`600 20px 'Barlow Condensed',sans-serif`;
+    ctx.fillText(l,cx,625);
+  });
+
+  ctx.textAlign='center';
+  ctx.fillStyle='#E8621A';
+  ctx.font=`700 30px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('JOIN FREE — DOWNLOAD STRIKR',S/2,S-80);
+  ctx.fillStyle='rgba(240,244,248,.3)';
+  ctx.font=`400 22px 'Barlow Condensed',sans-serif`;
+  ctx.fillText('Log. Catch. Win. — link in bio',S/2,S-46);
+}
+
+function downloadSocialImage(){
+  const canvas=document.getElementById('social-canvas');
+  const a=document.createElement('a');
+  a.download=`strikr-${_socialType}-${Date.now()}.png`;
+  a.href=canvas.toDataURL('image/png');
+  a.click();
 }
 
 // ===== SPONSORED COMP TOGGLE =====
